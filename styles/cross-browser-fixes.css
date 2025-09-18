@@ -1,0 +1,127 @@
+/* Cross-browser compatibility fixes */
+
+/* Fix for iOS Safari 100vh issue */
+.full-height {
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for modern browsers */
+}
+
+/* Better mobile viewport handling */
+@supports (-webkit-touch-callout: none) {
+  .full-height {
+    height: calc(100vh - env(safe-area-inset-bottom));
+  }
+}
+
+/* Fix for flexbox gap support in older browsers */
+.flex-gap-fallback > * + * {
+  margin-left: 0.5rem;
+}
+
+.flex-gap-fallback-vertical > * + * {
+  margin-top: 0.5rem;
+}
+
+/* Grid fallback for older browsers */
+@supports not (display: grid) {
+  .grid-fallback {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .grid-fallback > * {
+    flex: 1 1 200px;
+    margin: 0.5rem;
+  }
+}
+
+/* Scrollbar styling for webkit browsers */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Backdrop filter fallback */
+.backdrop-blur-fallback {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+@supports not (backdrop-filter: blur(8px)) {
+  .backdrop-blur-fallback {
+    background: rgba(255, 255, 255, 0.9);
+  }
+}
+
+/* Sticky positioning fallback */
+@supports not (position: sticky) {
+  .sticky-fallback {
+    position: fixed;
+    top: 0;
+    z-index: 100;
+  }
+}
+
+/* Touch-friendly button sizes */
+@media (pointer: coarse) {
+  .touch-friendly {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.75rem;
+  }
+}
+
+/* Fix for Safari border-radius with overflow hidden */
+.safari-border-fix {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Better text rendering */
+.text-rendering-optimized {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Container query fallback */
+@supports not (container-type: inline-size) {
+  .container-fallback {
+    width: 100%;
+  }
+  
+  @media (min-width: 768px) {
+    .container-fallback {
+      width: 50%;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .container-fallback {
+      width: 33.333%;
+    }
+  }
+}
+
+/* Focus visible polyfill for better accessibility */
+.focus-visible-polyfill:focus:not(.focus-visible) {
+  outline: none;
+}
+
+.focus-visible-polyfill.focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
