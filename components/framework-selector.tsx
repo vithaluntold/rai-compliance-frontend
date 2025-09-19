@@ -91,7 +91,7 @@ export default function FrameworkSelector({
       setError(null);
       
       // Fetch frameworks from the API endpoint
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://complianceenginebackend.vercel.app'}/api/v1/analysis/frameworks`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://rai-compliance-backend.onrender.com'}/api/v1/analysis/frameworks`);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);

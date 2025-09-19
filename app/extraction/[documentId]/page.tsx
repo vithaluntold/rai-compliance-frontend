@@ -76,7 +76,7 @@ export default function DocumentDetailsPage() {
   useEffect(() => {
     const testBackendConnection = async () => {
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://complianceenginebackend.vercel.app';
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://rai-compliance-backend.onrender.com';
         addLog('info', 'System', `Testing backend connectivity to: ${backendUrl}`);
         
         const response = await fetch(`${backendUrl}/api/v1/health`, {
@@ -100,7 +100,7 @@ export default function DocumentDetailsPage() {
       } catch (error) {
         addLog('error', 'System', 'Failed to connect to backend', { 
           error: (error as Error).message,
-          backendUrl: process.env.NEXT_PUBLIC_API_URL || 'https://complianceenginebackend.vercel.app'
+          backendUrl: process.env.NEXT_PUBLIC_API_URL || 'https://rai-compliance-backend.onrender.com'
         });
       }
     };
@@ -118,7 +118,7 @@ export default function DocumentDetailsPage() {
         setLastApiCall(new Date().toLocaleTimeString());
         addLog('info', 'API', `Checking document status (call #${apiCallCount + 1})`, { 
           documentId, 
-          apiUrl: process.env.NEXT_PUBLIC_API_URL || 'https://complianceenginebackend.vercel.app' 
+          apiUrl: process.env.NEXT_PUBLIC_API_URL || 'https://rai-compliance-backend.onrender.com' 
         });
         
         const startTime = Date.now();
@@ -392,7 +392,7 @@ export default function DocumentDetailsPage() {
                     <div className="flex justify-between">
                       <span className="text-blue-700">Backend URL:</span>
                       <span className="font-mono text-blue-900 text-right break-all">
-                        {process.env.NEXT_PUBLIC_API_URL || 'https://complianceenginebackend.vercel.app'}
+                        {process.env.NEXT_PUBLIC_API_URL || 'https://rai-compliance-backend.onrender.com'}
                       </span>
                     </div>
                     <div className="flex justify-between">

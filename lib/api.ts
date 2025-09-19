@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://complianceenginebackend.vercel.app'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://rai-compliance-backend.onrender.com'
 
 export const api = {
   analysis: {

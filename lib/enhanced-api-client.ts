@@ -3,7 +3,7 @@ import { toast } from '@/components/ui/use-toast';
 
 // API configuration
 const API_VERSION = "v1";
-const DEFAULT_API_URL = "https://complianceenginebackend.vercel.app";
+const DEFAULT_API_URL = "https://rai-compliance-backend.onrender.com";
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL;
 

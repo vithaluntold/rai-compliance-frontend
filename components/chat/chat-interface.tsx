@@ -1393,7 +1393,7 @@ export function ChatInterface(): React.JSX.Element {
       
       try {
         // Test API connectivity first
-        const healthCheck = await fetch('https://complianceenginebackend.vercel.app', {
+        const healthCheck = await fetch('https://rai-compliance-backend.onrender.com', {
           method: 'GET',
         });
         const healthData = await healthCheck.json();
@@ -1404,7 +1404,7 @@ export function ChatInterface(): React.JSX.Element {
         const testFormData = new FormData();
         testFormData.append('processing_mode', 'enhanced');
         
-        const uploadTest = await fetch('https://complianceenginebackend.vercel.app/api/v1/analysis/upload', {
+        const uploadTest = await fetch('https://rai-compliance-backend.onrender.com/api/v1/analysis/upload', {
           method: 'POST',
           body: testFormData,
         });

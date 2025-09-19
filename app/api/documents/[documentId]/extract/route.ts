@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     // Get API URL from environment variable
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://complianceenginebackend.vercel.app';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://rai-compliance-backend.onrender.com';
     if (!backendUrl) {
       return NextResponse.json(
         { error: "Backend URL not configured" },

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://complianceenginebackend.vercel.app';
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://rai-compliance-backend.onrender.com';
   if (!backendUrl) {
     return NextResponse.json(
       { error: "Backend URL not configured" },
@@ -28,7 +28,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://complianceenginebackend.vercel.app';
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://rai-compliance-backend.onrender.com';
   if (!backendUrl) {
     return NextResponse.json(
       { error: "Backend URL not configured" },

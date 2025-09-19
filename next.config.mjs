@@ -29,7 +29,7 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   async rewrites() {
     // Default to production backend URL
-    const defaultApiUrl = "https://complianceenginebackend.vercel.app";
+    const defaultApiUrl = "https://rai-compliance-backend.onrender.com";
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || defaultApiUrl;
 

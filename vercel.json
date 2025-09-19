@@ -5,11 +5,11 @@
   "outputDirectory": ".next",
   "installCommand": "npm install --legacy-peer-deps",
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://complianceenginebackend.vercel.app"
+    "NEXT_PUBLIC_API_URL": "https://rai-compliance-backend.onrender.com"
   },
   "build": {
     "env": {
-      "NEXT_PUBLIC_API_URL": "https://complianceenginebackend.vercel.app"
+      "NEXT_PUBLIC_API_URL": "https://rai-compliance-backend.onrender.com"
     }
   }
 }

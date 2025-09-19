@@ -69,7 +69,7 @@ export default function FileUpload({
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch("/api/documents", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://rai-compliance-backend.onrender.com'}/api/v1/analysis/upload`, {
         method: "POST",
         body: formData,
       });
