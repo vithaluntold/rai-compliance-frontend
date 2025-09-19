@@ -446,7 +446,12 @@ export function SidePanel({
   };
 
   const renderMetadataSection = () => {
-    if (!chatState.documentMetadata && !isEditingMetadata) return null;
+    // Always show metadata section if we're on metadata step or have metadata
+    const shouldShowMetadata = chatState.currentStep?.id === "metadata" || 
+                               chatState.documentMetadata || 
+                               isEditingMetadata;
+    
+    if (!shouldShowMetadata) return null;
 
     return (
       <Card className="p-4 mb-4 bg-white dark:bg-black border-gray-200 dark:border-white">
@@ -454,10 +459,14 @@ export function SidePanel({
           <h3 className="font-semibold text-[#0087d9]">Company Information</h3>
           {!isEditingMetadata && (
             <Button
-              className="h-8 px-2 bg-transparent"
+              variant="outline"
+              size="sm"
+              className="h-8 px-3 hover:bg-gray-100 dark:hover:bg-gray-800"
               onClick={() => setIsEditingMetadata(true)}
+              title="Edit company information"
             >
-              <Edit3 className="h-4 w-4" />
+              <Edit3 className="h-4 w-4 mr-1" />
+              Edit
             </Button>
           )}
         </div>
@@ -563,60 +572,69 @@ export function SidePanel({
           </div>
         ) : (
           <div className="space-y-2">
-            <div>
-              <span className="text-sm font-medium text-gray-700">
-                Company Name:
-              </span>
-              <div className="text-sm text-gray-600 mt-1">
-                {getMetadataValue(chatState.documentMetadata?.company_name) ||
-                  "Not available"}
+            {!chatState.documentMetadata || Object.values(chatState.documentMetadata).every(val => !getMetadataValue(val)) ? (
+              <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                <p className="text-sm">No company information available yet.</p>
+                <p className="text-xs mt-1">Click "Edit" above to add company details manually.</p>
               </div>
-            </div>
+            ) : (
+              <>
+                <div>
+                  <span className="text-sm font-medium text-gray-700">
+                    Company Name:
+                  </span>
+                  <div className="text-sm text-gray-600 mt-1">
+                    {getMetadataValue(chatState.documentMetadata?.company_name) ||
+                      "Not available"}
+                  </div>
+                </div>
 
-            <div>
-              <span className="text-sm font-medium text-gray-700">
-                Nature of Business:
-              </span>
-              <div className="text-sm text-gray-600 mt-1">
-                {getMetadataValue(
-                  chatState.documentMetadata?.nature_of_business,
-                ) || "Not available"}
-              </div>
-            </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-700">
+                    Nature of Business:
+                  </span>
+                  <div className="text-sm text-gray-600 mt-1">
+                    {getMetadataValue(
+                      chatState.documentMetadata?.nature_of_business,
+                    ) || "Not available"}
+                  </div>
+                </div>
 
-            <div>
-              <span className="text-sm font-medium text-gray-700">
-                Geography of Operations:
-              </span>
-              <div className="text-sm text-gray-600 mt-1">
-                {getMetadataValue(
-                  chatState.documentMetadata?.operational_demographics,
-                ) || "Not specified"}
-              </div>
-            </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-700">
+                    Geography of Operations:
+                  </span>
+                  <div className="text-sm text-gray-600 mt-1">
+                    {getMetadataValue(
+                      chatState.documentMetadata?.operational_demographics,
+                    ) || "Not specified"}
+                  </div>
+                </div>
 
-            <div>
-              <span className="text-sm font-medium text-gray-700">
-                Nature of Statement:
-              </span>
-              <div className="text-sm text-gray-600 mt-1">
-                {getMetadataValue(
-                  chatState.documentMetadata?.financial_statements_type,
-                ) || "Not specified"}
-              </div>
-            </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-700">
+                    Nature of Statement:
+                  </span>
+                  <div className="text-sm text-gray-600 mt-1">
+                    {getMetadataValue(
+                      chatState.documentMetadata?.financial_statements_type,
+                    ) || "Not specified"}
+                  </div>
+                </div>
 
-            {/* Confirm button for metadata step */}
-            {chatState.currentStep?.id === "metadata" && onConfirmStep && (
-              <div className="pt-3">
-                <Button
-                  onClick={() => onConfirmStep("metadata")}
-                  className="h-8 px-2 bg-[#0087d9] hover:bg-blue-700 w-full"
-                >
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  Confirm & Proceed to Next Step
-                </Button>
-              </div>
+                {/* Confirm button for metadata step */}
+                {chatState.currentStep?.id === "metadata" && onConfirmStep && (
+                  <div className="pt-3">
+                    <Button
+                      onClick={() => onConfirmStep("metadata")}
+                      className="h-8 px-2 bg-[#0087d9] hover:bg-blue-700 w-full"
+                    >
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Confirm & Proceed to Next Step
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
