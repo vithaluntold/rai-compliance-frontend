@@ -2872,7 +2872,7 @@ You can expand each section below to review detailed findings, evidence, and sug
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-4 rounded-lg border border-blue-200 dark:border-white shadow-sm">
+                <div className="bg-white/80 dark:bg-black/80 backdrop-blur-sm p-4 rounded-lg border border-blue-200 dark:border-white shadow-sm">
                   <div className="text-sm font-medium text-blue-600 dark:text-gray-300 mb-2">Current Operation</div>
                   <div className={`text-xl font-bold ${loadingState.isLoading ? 'text-green-600' : 'text-gray-500 dark:text-gray-400'}`}>
                     {loadingState.isLoading ? 'ACTIVE' : 'IDLE'}
@@ -2883,13 +2883,13 @@ You can expand each section below to review detailed findings, evidence, and sug
                     </div>
                   )}
                 </div>
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-4 rounded-lg border border-blue-200 dark:border-white shadow-sm">
+                <div className="bg-white/80 dark:bg-black/80 backdrop-blur-sm p-4 rounded-lg border border-blue-200 dark:border-white shadow-sm">
                   <div className="text-sm font-medium text-blue-600 dark:text-gray-300 mb-2">Total API Calls</div>
                   <div className="text-3xl font-bold text-blue-700 dark:text-white">
                     {apiCallCount}
                   </div>
                 </div>
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-4 rounded-lg border border-blue-200 dark:border-white shadow-sm">
+                <div className="bg-white/80 dark:bg-black/80 backdrop-blur-sm p-4 rounded-lg border border-blue-200 dark:border-white shadow-sm">
                   <div className="text-sm font-medium text-blue-600 dark:text-gray-300 mb-2">Last API Call</div>
                   <div className="text-sm font-medium text-green-600 dark:text-green-400 p-2 bg-green-50 dark:bg-gray-700 rounded">
                     {lastApiCall || 'None yet'}
@@ -2898,7 +2898,7 @@ You can expand each section below to review detailed findings, evidence, and sug
               </div>
 
               {loadingState.isLoading && (
-                <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm p-4 rounded-lg border border-blue-200 dark:border-white shadow-sm mb-4">
+                <div className="bg-white/90 dark:bg-black/90 backdrop-blur-sm p-4 rounded-lg border border-blue-200 dark:border-white shadow-sm mb-4">
                   <h4 className="font-semibold text-blue-900 dark:text-white mb-3 flex items-center gap-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     Active Operation

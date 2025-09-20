@@ -925,7 +925,7 @@ export function SidePanel({
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 384, opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="fixed right-0 top-0 h-full w-[26rem] code-panel border-l border-gray-200 dark:border-white overflow-y-auto z-50"
+      className="fixed right-0 top-0 h-full w-[26rem] code-panel bg-white dark:bg-black border-l border-gray-200 dark:border-white overflow-y-auto z-50"
     >
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">

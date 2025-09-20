@@ -359,12 +359,12 @@ export function ChatInput({
               className="space-y-4"
             >
               <Card
-                className={`transition-all duration-300 cursor-pointer relative overflow-hidden group ${
+                className={`transition-all duration-300 cursor-pointer relative overflow-hidden group !bg-white dark:!bg-black ${
                   dragActive
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-950 shadow-lg scale-[1.02]"
+                    ? "border-blue-500 !bg-blue-50 dark:!bg-blue-950 shadow-lg scale-[1.02]"
                     : isOnline
-                      ? "border-transparent hover:border-blue-400 hover:shadow-md bg-white dark:bg-black hover:bg-slate-50 dark:hover:bg-gray-950"
-                      : "border-gray-200 bg-gray-50 dark:bg-black/50 cursor-not-allowed"
+                      ? "border-transparent hover:border-blue-400 hover:shadow-md hover:!bg-slate-50 dark:hover:!bg-gray-950"
+                      : "border-gray-200 !bg-gray-50 dark:!bg-black/50 cursor-not-allowed"
                 } ${disabled ? "pointer-events-none opacity-50" : ""}`}
                 onDragEnter={isOnline && !disabled ? handleDrag : undefined}
                 onDragLeave={isOnline && !disabled ? handleDrag : undefined}

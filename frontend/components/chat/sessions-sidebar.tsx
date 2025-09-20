@@ -241,7 +241,7 @@ toast({
               animate={{ x: 0 }}
               exit={{ x: -320 }}
               transition={{ type: "spring", damping: 20, stiffness: 100 }}
-              className="fixed left-0 top-0 h-full w-[26rem] sidebar-panel border-r border-gray-200 dark:border-white z-50 flex flex-col shadow-lg"
+              className="fixed left-0 top-0 h-full w-[26rem] bg-white dark:bg-black sidebar-panel border-r border-gray-200 dark:border-white z-50 flex flex-col shadow-lg"
             >
               {/* Header */}
               <div className="p-4 border-b border-gray-200 dark:border-gray-700">
@@ -389,7 +389,7 @@ toast({
 
               {/* Processing Logs Section - Permanently Attached to Bottom */}
               {showProcessingLogs && (
-                <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black">
                   <div className="p-3 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
@@ -424,7 +424,7 @@ toast({
 
               {/* Show Logs Button when hidden */}
               {!showProcessingLogs && onToggleProcessingLogs && (
-                <div className="border-t border-gray-200 bg-gray-50 dark:bg-gray-800 p-3">
+                <div className="border-t border-gray-200 bg-gray-50 dark:bg-black p-3">
                   <Button
                     onClick={onToggleProcessingLogs}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2"
