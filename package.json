@@ -1,0 +1,14 @@
+{
+  "name": "rai-compliance-monorepo",
+  "version": "1.0.0",
+  "description": "RAi Compliance Engine - Frontend deployment",
+  "scripts": {
+    "build": "cd frontend && npm ci && npm run build",
+    "start": "cd frontend && npm start",
+    "dev": "cd frontend && npm run dev"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
