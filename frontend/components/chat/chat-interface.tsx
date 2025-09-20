@@ -2795,8 +2795,8 @@ You can expand each section below to review detailed findings, evidence, and sug
           )}
         </div>
 
-        {/* Enhanced Messages Container */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 relative">
+        {/* Enhanced Messages Container - EXPANDED */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 relative flex flex-col">
           {/* Background Pattern */}
           <div className="absolute inset-0 opacity-5">
             <div
@@ -2835,7 +2835,8 @@ You can expand each section below to review detailed findings, evidence, and sug
             </div>
           )}
 
-          <div>
+          {/* Messages Area - Expandable */}
+          <div className="flex-1">
             {safeMap<Message, React.ReactElement>(messages, (message) => (
               <div
                 key={message.id}
@@ -2852,6 +2853,45 @@ You can expand each section below to review detailed findings, evidence, and sug
           </div>
 
           <div ref={messagesEndRef} />
+
+          {/* Chat Input at BOTTOM of Messages Area */}
+          <div
+            className={`backdrop-blur-sm border-t p-4 mt-4 transition-colors duration-300 ${
+              theme === "dark"
+                ? "bg-black/95 border-gray-700/60"
+                : "bg-white/95 border-gray-200/60"
+            }`}
+          >
+            <ChatInput
+              onFileUpload={(file: unknown) => {
+                if (file instanceof File) {
+                  handleFileUpload(file);
+                }
+              }}
+              onFrameworkSelection={handleFrameworkSelection}
+              chatState={chatState}
+              disabled={chatState.isProcessing}
+              onUploadStart={() => {
+                setIsUploading(true);
+                setUploadProgress(0);
+                setUploadError(null);
+                // Clear any existing polling timer
+                if (pollingTimer) {
+                  clearTimeout(pollingTimer);
+                  setPollingTimer(null);
+                }
+              }}
+              onUploadProgress={(progress: number) => setUploadProgress(progress)}
+              onUploadError={(error: Error | unknown) => {
+                setUploadError(error instanceof Error ? error.message : "Upload failed");
+                setIsUploading(false);
+              }}
+              onUploadComplete={() => {
+                setIsUploading(false);
+                setUploadProgress(100);
+              }}
+            />
+          </div>
         </div>
 
         {/* Analysis Progress Indicator */}
@@ -2962,45 +3002,6 @@ You can expand each section below to review detailed findings, evidence, and sug
             </div>
           </div>
         )}
-
-        {/* Enhanced Chat Input */}
-        <div
-          className={`backdrop-blur-sm border-t p-4 transition-colors duration-300 ${
-            theme === "dark"
-              ? "bg-black/95 border-gray-700/60"
-              : "bg-white/95 border-gray-200/60"
-          }`}
-        >
-          <ChatInput
-            onFileUpload={(file: unknown) => {
-              if (file instanceof File) {
-                handleFileUpload(file);
-              }
-            }}
-            onFrameworkSelection={handleFrameworkSelection}
-            chatState={chatState}
-            disabled={chatState.isProcessing}
-            onUploadStart={() => {
-              setIsUploading(true);
-              setUploadProgress(0);
-              setUploadError(null);
-              // Clear any existing polling timer
-              if (pollingTimer) {
-                clearTimeout(pollingTimer);
-                setPollingTimer(null);
-              }
-            }}
-            onUploadProgress={(progress: number) => setUploadProgress(progress)}
-            onUploadError={(error: Error | unknown) => {
-              setUploadError(error instanceof Error ? error.message : "Upload failed");
-              setIsUploading(false);
-            }}
-            onUploadComplete={() => {
-              setIsUploading(false);
-              setUploadProgress(100);
-            }}
-          />
-        </div>
       </div>
 
       {/* Side Panel */}
