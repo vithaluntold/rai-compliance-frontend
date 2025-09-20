@@ -202,13 +202,12 @@ export function ChatInterface(): React.JSX.Element {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { loadingState } = useLoading();
-  const { logs, addLog } = useProcessingLogs();
+  const { addLog } = useProcessingLogs();
   
   // Session management state
   const [currentSession, setCurrentSession] = useState<SessionDetail | null>(null);
   const [showSessionsSidebar, setShowSessionsSidebar] = useState(true);
   const [showVisualFeedback, setShowVisualFeedback] = useState(true);
-  const [showProcessingLogs, setShowProcessingLogs] = useState(true);
   const [apiCallCount, setApiCallCount] = useState(0);
   const [lastApiCall, setLastApiCall] = useState<string | null>(null);
   
@@ -2676,9 +2675,6 @@ You can expand each section below to review detailed findings, evidence, and sug
         onNewSession={handleNewSession}
         onSessionSelect={(session) => handleSessionLoad(session.session_id)}
         currentSessionId={currentSession?.session_id || ""}
-        processingLogs={logs}
-        showProcessingLogs={showProcessingLogs}
-        onToggleProcessingLogs={() => setShowProcessingLogs(!showProcessingLogs)}
       />
 
       {/* Main Chat Interface */}

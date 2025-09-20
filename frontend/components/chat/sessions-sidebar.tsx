@@ -17,8 +17,7 @@ import {
   Archive,
   Edit,
   ChevronLeft,
-  ChevronRight,
-  Activity
+  ChevronRight
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -29,7 +28,6 @@ import {
 import { api, Session, SessionDetail } from "@/lib/api-client";
 import { useToast } from "@/components/ui/use-toast";
 import { useTheme } from "@/context/theme-context";
-import { ProcessingLogs } from "@/components/ui/processing-logs";
 
 interface SessionsSidebarProps {
   isOpen: boolean;
@@ -37,16 +35,6 @@ interface SessionsSidebarProps {
   onSessionSelect: (session: SessionDetail) => void;
   onNewSession: () => void;
   currentSessionId?: string;
-  processingLogs?: Array<{
-    id?: string;
-    timestamp: string;
-    level: 'info' | 'success' | 'warning' | 'error';
-    category: string;
-    message: string;
-    details?: unknown;
-  }>;
-  showProcessingLogs?: boolean;
-  onToggleProcessingLogs?: () => void;
 }
 
 export function SessionsSidebar({ 
@@ -54,10 +42,7 @@ export function SessionsSidebar({
   onToggle, 
   onSessionSelect, 
   onNewSession,
-  currentSessionId,
-  processingLogs = [],
-  showProcessingLogs = true,
-  onToggleProcessingLogs
+  currentSessionId
 }: SessionsSidebarProps) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(false);
@@ -391,54 +376,7 @@ toast({
                 )}
               </ScrollArea>
 
-              {/* Processing Logs Section - Permanently Attached to Bottom */}
-              {showProcessingLogs && (
-                <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black">
-                  <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                        <Activity className="h-4 w-4 text-blue-600" />
-                        Processing Logs
-                      </h3>
-                      {onToggleProcessingLogs && (
-                        <Button
-                          onClick={onToggleProcessingLogs}
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                        >
-                          ×
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                  <div className="h-64">
-                    <ProcessingLogs 
-                      logs={processingLogs?.map((log, index) => ({
-                        ...log,
-                        id: log.id || `log-${index}-${Date.now()}`,
-                        details: typeof log.details === 'string' || log.details === null || log.details === undefined || (typeof log.details === 'object' && log.details !== null) ? log.details as string | Record<string, unknown> | null : null
-                      })) || []}
-                      isVisible={true}
-                      maxHeight="256px"
-                    />
-                  </div>
-                </div>
-              )}
 
-              {/* Show Logs Button when hidden */}
-              {!showProcessingLogs && onToggleProcessingLogs && (
-                <div className="border-t border-gray-200 bg-gray-50 dark:bg-black p-3">
-                  <Button
-                    onClick={onToggleProcessingLogs}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2"
-                    size="sm"
-                  >
-                    <Activity className="h-4 w-4 mr-2" />
-                    Show Processing Logs
-                  </Button>
-                </div>
-              )}
             </motion.div>
           </>
         )}
