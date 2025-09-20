@@ -1,0 +1,40 @@
+/* Cross-browser fixes for better compatibility */
+
+/* Fix for webkit appearance issues */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea,
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Fix for focus outline consistency */
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid #0087d9;
+  outline-offset: 2px;
+}
+
+/* Fix for smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Fix for box-sizing inheritance */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Fix for text rendering */
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

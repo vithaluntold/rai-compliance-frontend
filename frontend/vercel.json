@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install --legacy-peer-deps",
+  "env": {
+    "NEXT_PUBLIC_API_URL": "https://rai-compliance-backend.onrender.com"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_API_URL": "https://rai-compliance-backend.onrender.com"
+    }
+  }
+}

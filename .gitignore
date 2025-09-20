@@ -1,0 +1,64 @@
+.vercel
+
+# Dependencies
+node_modules/
+__pycache__/
+.venv/
+venv/
+
+# Build outputs
+.next/
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# IDE files
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Python
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Data directories
+uploads/
+sessions/
+vector_indices/
+analysis_results/
+exported_dataset/
+extracts/
+validations/
+
+# Ignore old backend directories (render-backend is the correct one)
+backend/
+minimal-backend/
+vercel-backend/
+
+# Temporary cleanup files
+clean_all_console.js
+cleanup-script.js
+eslint-fix-script.js
+fix_broken_line.py
+fix_line_breaks.py
+fix-lint-issues.js
+import-fix-script.js
+remove_console.js
+military_grade_fixer.py
+security_fixer.py
+complexity_reducer.py

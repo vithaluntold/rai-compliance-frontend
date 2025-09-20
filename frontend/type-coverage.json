@@ -1,0 +1,16 @@
+{
+  "atLeast": 90,
+  "detail": true,
+  "strict": true,
+  "ignoreCatch": true,
+  "ignoreFiles": [
+    "**/*.d.ts",
+    "**/*.js",
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/coverage/**",
+    "**/tests/**/*.test.ts",
+    "**/tests/**/*.test.tsx"
+  ],
+  "reportSemanticError": true
+}

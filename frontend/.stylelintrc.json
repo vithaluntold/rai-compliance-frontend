@@ -1,0 +1,37 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "plugins": ["stylelint-config-tailwindcss"],
+  "rules": {
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": [
+          "tailwind",
+          "apply",
+          "variants",
+          "responsive",
+          "screen",
+          "layer"
+        ]
+      }
+    ],
+    "function-no-unknown": [
+      true,
+      {
+        "ignoreFunctions": ["theme", "screen"]
+      }
+    ],
+    "property-no-unknown": [
+      true,
+      {
+        "ignoreProperties": ["text-wrap", "text-size-adjust"]
+      }
+    ],
+    "declaration-block-no-duplicate-properties": true,
+    "no-empty-source": null,
+    "declaration-property-value-no-unknown": null,
+    "value-no-vendor-prefix": null,
+    "property-no-vendor-prefix": null,
+    "selector-no-vendor-prefix": null
+  }
+}

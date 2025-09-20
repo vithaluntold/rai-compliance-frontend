@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+frontend/.next/
+frontend/out/
+frontend/build/
+
+# Logs
+*.log
+logs/
+
+# Database files
+*.db
+*.duckdb
+
+# Temporary files
+.tmp/
+temp/
+
+# Development files
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Test files
+coverage/
+.coverage
+
+# Documentation
+*.md
+!README.md
+
+# Data directories
+data/
+uploads/
+sessions/
+analysis_results/
+checklist_data/
+exported_dataset/
+extracts/
+validations/
+vector_indices/
+
+# Cache directories
+.tsbuildinfo
+.eslintcache

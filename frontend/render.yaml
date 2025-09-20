@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: rai-compliance-frontend
+    env: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://rai-compliance-backend.onrender.com
+    healthCheckPath: /

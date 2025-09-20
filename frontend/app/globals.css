@@ -1,0 +1,279 @@
+/* Tailwind CSS directives */
+/* These @tailwind directives are valid - suppress CSS validation warnings */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import professional styling */
+@import "../styles/professional.css";
+
+/* Base layer for cross-browser compatibility */
+@layer base {
+  /* Better box-sizing for all elements */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  
+  /* Reset margins and paddings */
+  * {
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Improved root font settings */
+  html {
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    font-feature-settings: "kern";
+  }
+  
+  /* Better body defaults */
+  body {
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  
+  /* Improved media defaults */
+  img, picture, video, canvas, svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Better form elements */
+  input, button, textarea, select {
+    font: inherit;
+    color: inherit;
+  }
+  
+  /* Remove button styling */
+  button {
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+  }
+  
+  /* Better focus styles */
+  :focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+}
+
+/* Custom ZAP animation for lightning-fast flickering */
+@keyframes zap-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  25% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 0.5;
+  }
+}
+
+.animate-zap {
+  animation: zap-flicker 0.3s ease-in-out infinite;
+}
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+
+  /* RAi Brand Colors - Exact logo colors */
+  --rai-primary: 203 100% 43%; /* Exact RAi Logo Blue #0087d9 */
+  --rai-secondary: 220 70% 50%; /* Medium blue */
+  --rai-accent: 200 85% 55%; /* Light accent */
+  --rai-gray: 210 10% 50%; /* Professional gray */
+  --rai-light-gray: 210 15% 95%; /* Light background gray */
+  --rai-dark: 218 30% 15%; /* Dark text */
+
+  /* RAi Blue as hex for compatibility */
+  --rai-blue-hex: #0087d9;
+
+  /* FinACEverse Brand Colors */
+  --finaceverse-powered-by: 355 47% 51%; /* #c33c4c */
+  --finaceverse-brand: 207 56% 66%; /* rgba(115,176,224,255) = #73b0e0 */
+
+  /* Legacy color variables for compatibility */
+  --deep-blue: 203 100% 43%; /* Same as RAi Primary - exact logo blue #0087d9 */
+  --electric-teal: 200 85% 55%; /* Accent color */
+
+  /* UI Colors mapped to RAi brand */
+  --card: 0 0% 100%;
+  --card-foreground: 210 20% 15%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 210 20% 15%;
+  --primary: 203 100% 43%; /* RAi Primary Blue - exact logo blue #0087d9 */
+  --primary-foreground: 210 40% 98%;
+  --secondary: 220 70% 50%; /* RAi Secondary Blue */
+  --secondary-foreground: 210 40% 98%;
+  --muted: 210 15% 95%; /* RAi Light Gray */
+  --muted-foreground: 210 10% 50%;
+  --accent: 200 85% 55%; /* RAi Accent Blue */
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 210 20% 88%;
+  --input: 210 20% 94%;
+  --ring: 203 100% 43%; /* RAi Primary Blue - exact logo blue #0087d9 */
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-montserrat font-bold;
+  }
+  p,
+  span,
+  div,
+  button,
+  input,
+  textarea {
+    @apply font-ibm-plex;
+  }
+}
+
+/* Custom Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 183, 195, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(0, 183, 195, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 183, 195, 0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.5s ease-out;
+}
+
+.animate-pulse-teal {
+  animation: pulse 2s infinite;
+}
+
+/* Solid Background */
+.bg-rai-primary {
+  background: hsl(var(--rai-primary));
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--electric-teal) / 0.6);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--electric-teal));
+}
+
+/* Font Variables */
+.font-montserrat {
+  font-family: var(--font-montserrat), sans-serif;
+}
+
+.font-ibm-plex {
+  font-family: var(--font-ibm-plex-sans), sans-serif;
+}
+
+/* RAi Brand Title Styling */
+.rai-brand-title {
+  font-family: var(--font-montserrat), sans-serif;
+  font-weight: 700;
+  color: hsl(var(--rai-primary));
+  letter-spacing: -0.02em;
+}
+
+.rai-compliance-engine {
+  font-family: var(--font-montserrat), sans-serif;
+  font-weight: 600;
+  color: hsl(var(--rai-dark));
+  letter-spacing: -0.01em;
+}
+
+/* RAi Blue Utility Classes */
+.text-rai-blue {
+  color: #0087d9;
+}
+
+.bg-rai-blue {
+  background-color: #0087d9;
+}
+
+.border-rai-blue {
+  border-color: #0087d9;
+}
+
+.ring-rai-blue {
+  --tw-ring-color: #0087d9;
+}
+
+.focus\:ring-rai-blue:focus {
+  --tw-ring-color: #0087d9;
+}
+
+.hover\:bg-rai-blue:hover {
+  background-color: #0a7cc2;
+}
+
+.rai-gradient {
+  background: linear-gradient(135deg, #0087d9 0%, #0ea5e9 100%);
+}
