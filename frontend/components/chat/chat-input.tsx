@@ -136,14 +136,16 @@ export function ChatInput({
     loadFrameworks();
   }, [chatState.currentStep, frameworks.length, toast]);
 
-  const handleDrag = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -353,128 +355,45 @@ export function ChatInput({
         {/* Upload Error Display - REMOVED: Now handled by side panel */}
 
         <AnimatePresence mode="wait">
-          {/* File Upload Area */}
+          {/* Compact File Upload Area - Bottom of Chat */}
           {shouldShowUploadArea() && (
             <motion.div
               key="upload"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-4"
+              exit={{ opacity: 0, y: -10 }}
+              className="mb-3"
             >
-              <Card
-                className={`transition-all duration-300 cursor-pointer relative overflow-hidden group !bg-white dark:!bg-black ${
+              <div
+                className={`border-2 border-dashed rounded-lg p-3 text-center cursor-pointer transition-all duration-200 ${
                   dragActive
-                    ? "border-blue-500 !bg-blue-50 dark:!bg-blue-950 shadow-lg scale-[1.02]"
-                    : isOnline
-                      ? "border-transparent hover:border-blue-400 hover:shadow-md hover:!bg-slate-50 dark:hover:!bg-gray-950"
-                      : "border-gray-200 !bg-gray-50 dark:!bg-black/50 cursor-not-allowed"
-                } ${disabled ? "pointer-events-none opacity-50" : ""}`}
-                onDragEnter={isOnline && !disabled ? handleDrag : undefined}
-                onDragLeave={isOnline && !disabled ? handleDrag : undefined}
-                onDragOver={isOnline && !disabled ? handleDrag : undefined}
-                onDrop={isOnline && !disabled ? handleDrop : undefined}
-                onClick={
-                  isOnline && !disabled
-                    ? () => fileInputRef.current?.click()
-                    : undefined
-                }
+                    ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
+                    : "border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+                } ${!isOnline || isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={() => !isUploading && isOnline && fileInputRef.current?.click()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
               >
-                {/* Floating particles effect on hover */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                  {[...Array(6)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="absolute w-2 h-2 bg-blue-400/20 rounded-full group-hover:animate-pulse"
-                      style={{
-                        left: `${20 + i * 12}%`,
-                        top: `${30 + (i % 2) * 40}%`,
-                      }}
-                      animate={{
-                        y: [-10, 10, -10],
-                        opacity: [0, 0.6, 0],
-                        scale: [0.8, 1.2, 0.8],
-                      }}
-                      transition={{
-                        repeat: Infinity,
-                        duration: 2 + i * 0.3,
-                        delay: i * 0.2,
-                      }}
-                    />
-                  ))}
-                </div>
-
-                <div className="p-8 text-center relative z-10">
-                  <motion.div
-                    animate={
-                      isUploading
-                        ? { rotate: 360 }
-                        : dragActive
-                          ? { scale: [1, 1.1, 1] }
-                          : {}
-                    }
-                    transition={
-                      isUploading
-                        ? { repeat: Infinity, duration: 2 }
-                        : { duration: 0.3 }
-                    }
-                  >
-                    {isUploading ? (
-                      <Loader2 className="mx-auto h-12 w-12 text-blue-600 mb-4" />
-                    ) : !isOnline ? (
-                      <WifiOff className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                    ) : (
-                      <motion.div
-                        whileHover={{ scale: 1.1, rotate: 5 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <Upload className="mx-auto h-12 w-12 text-slate-500 dark:text-gray-400 group-hover:text-blue-500 transition-colors duration-300 mb-4" />
-                      </motion.div>
-                    )}
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0.8 }}
-                    whileHover={{ opacity: 1 }}
-                    className="text-lg font-semibold text-slate-800 dark:text-white mb-2"
-                  >
-                    {isUploading
-                      ? "Uploading your document..."
-                      : !isOnline
-                        ? "No internet connection"
-                        : "Upload your financial statement"}
-                  </motion.div>
-
-                  <div className="text-sm text-slate-600 dark:text-gray-300 mb-4">
-                    {isUploading
-                      ? "Please wait while we process your file"
-                      : !isOnline
-                        ? "Please check your network connection"
-                        : "Drag and drop your PDF or DOCX file here, or click to browse"}
-                  </div>
-
-                  {isOnline && !isUploading && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                      className="text-xs text-slate-500 dark:text-gray-400 px-3 py-1 rounded-full inline-block"
-                    >
-                      Supported formats: PDF, DOCX (max 50MB)
-                    </motion.div>
+                <div className="flex items-center justify-center space-x-2">
+                  {isUploading ? (
+                    <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4 text-gray-500" />
                   )}
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    {isUploading ? "Uploading..." : "Upload financial document (PDF, DOCX)"}
+                  </span>
                 </div>
-              </Card>
+              </div>
 
               <input
                 ref={fileInputRef}
                 type="file"
                 accept=".pdf,.docx"
-                aria-label="Upload document file"
+                aria-label="Upload financial document"
                 title="Select a PDF or DOCX file to upload"
-                onChange={(e) =>
-                  e.target.files?.[0] && handleFileSelect(e.target.files[0])
-                }
+                onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
                 className="hidden"
                 disabled={!isOnline || isUploading}
               />
