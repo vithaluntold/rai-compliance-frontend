@@ -2851,23 +2851,6 @@ You can expand each section below to review detailed findings, evidence, and sug
             ))}
           </div>
 
-          {/* Upload Card at Bottom - when no document uploaded */}
-          {!chatState.documentId && messages.length > 0 && (
-            <div className="mt-8 p-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 border border-blue-200 rounded-xl shadow-sm">
-              <div className="text-center">
-                <div className="mb-4">
-                  <div className="w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                    <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">Ready to Upload Your Document?</h3>
-                  <p className="text-gray-600 mb-4">Drop your financial document here or click to browse and start your compliance analysis</p>
-                </div>
-              </div>
-            </div>
-          )}
-
           <div ref={messagesEndRef} />
         </div>
 
