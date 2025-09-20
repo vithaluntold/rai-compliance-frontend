@@ -35,47 +35,51 @@ cd frontend && npm run dev:https
 - **Performance**: `npm run performance:test` (k6 load testing)
 
 ### Deployment Commands
-- **Frontend**: `npm run build` → Vercel auto-deployment
+- **Frontend**: Vercel auto-deploys from `frontend/` on push
 - **Backend**: Render auto-deploys from `render-backend/` on push
+- **Manual Deploy**: Use Render dashboard for backend env var changes
 
 ## Project-Specific Conventions
 
 ### RAi Brand System
-- **Primary Color**: `#0087d9` (RAi Blue) - use `rai.blue` in Tailwind or `hsl(var(--rai-primary))`
+- **Primary Color**: `#0087d9` (RAi Blue) - use Tailwind class `text-rai-blue` or `hsl(var(--rai-primary))`
+- **Font Stack**: Inter (body), Montserrat (headings), IBM Plex Sans (data)
 - **Component Pattern**: Radix UI primitives with custom RAi styling (`components/ui/`)
-- **FinACEverse Branding**: Secondary brand colors in `tailwind.config.ts`
 
 ### Code Organization Patterns
 - **UI Components**: Follow shadcn/ui pattern with `cn()` utility for class merging
-- **API Routes**: Backend uses `/api/v1/` prefix, frontend proxies via Next.js rewrites
+- **API Routes**: Backend uses `/api/v1/` prefix, frontend proxies via Vercel rewrites
 - **File Naming**: kebab-case for components, PascalCase for contexts/providers
+- **Context Pattern**: Separate files in `frontend/context/` for checklist, progress, theme
 
 ### AI Service Integration
 - **Azure OpenAI**: Configured via environment variables with fallback to `model-router` deployment
 - **Vector Store**: FAISS-based document embeddings in `render-backend/services/vector_store.py`
-- **Rate Limiting**: Conservative 30 req/min for Azure OpenAI S0 tier
+- **Rate Limiting**: Conservative 30 req/min for Azure OpenAI S0 tier (see `ai.py` constants)
 - **Parallel Processing**: Limited to 4 workers for 512MB Render instance
 
 ### Security & Performance
-- **CORS Configuration**: Restrictive origins for production (see `main.py`)
-- **Build Optimization**: Source maps disabled, webpack workers enabled
-- **Type Enforcement**: Strict TypeScript with `ignoreBuildErrors: true` for deployment speed
+- **CORS Configuration**: Restrictive origins in `main.py` for production domains
+- **Security Headers**: Custom middleware in `main.py` adds CSP, HSTS, X-Frame-Options
+- **Build Optimization**: Type coverage 90%+, test coverage 85%+
+- **Resource Limits**: Backend optimized for Render Starter plan (512MB RAM)
 
 ## Critical Integration Points
 
 ### Frontend ↔ Backend Communication
 - **API Base URL**: `NEXT_PUBLIC_API_URL` env var or defaults to Render URL
-- **Document Upload**: Multipart form data to `/api/documents` 
+- **Document Upload**: Multipart form data to `/api/documents` via FastAPI routes
 - **Analysis Flow**: Document → Chunking → AI Analysis → Checklist Population
+- **State Sync**: Frontend contexts track backend progress via polling
 
 ### Cross-Component State Flow
-1. **Document Upload** → `documents/` API → Backend storage
+1. **Document Upload** → `documents_router` → Backend storage (`uploads/`)
 2. **Analysis Trigger** → `ai.py` service → Vector embedding + OpenAI analysis  
 3. **Checklist Update** → Frontend context → Real-time UI updates
 4. **Results Export** → JSON/Excel via backend `/export` endpoints
 
 ### Dependency Management
-- **Frontend**: pnpm lockfile, Node 18+ required
+- **Frontend**: npm with lockfile, Node 18+ required
 - **Backend**: pip requirements, Python 3.8+ required  
 - **Shared Types**: Manual sync between TypeScript interfaces and Pydantic models
 
@@ -86,17 +90,17 @@ When working on this project:
 1. **Check deployment status**: Frontend on Vercel, backend on Render
 2. **Verify API connectivity**: Frontend should proxy to backend successfully
 3. **Azure OpenAI credentials**: Required for document analysis features
-4. **Brand consistency**: Use RAi blue (`#0087d9`) and follow component patterns
+4. **Brand consistency**: Use RAi blue (`#0087d9`) from `RAI_BRAND_COLORS.md`
 5. **Test coverage**: Maintain 85%+ coverage, run `npm run test:coverage`
 6. **Type safety**: Run `npm run type-check` before commits
 
 ## Common Tasks
 
-- **Add new API endpoint**: Create in `render-backend/routes/`, add to router imports
+- **Add new API endpoint**: Create in `render-backend/routes/`, import in `main.py`
 - **New UI component**: Follow shadcn/ui pattern in `components/ui/`
 - **Update AI prompts**: Modify `render-backend/services/ai_prompts.py`
 - **Brand color changes**: Update both `RAI_BRAND_COLORS.md` and `tailwind.config.ts`
-- **Deploy fixes**: Frontend auto-deploys, backend needs manual Render trigger if env changes
+- **Deploy fixes**: Both deployments are automatic, check logs in respective dashboards
 
 
 IMPORTANT NOTES
