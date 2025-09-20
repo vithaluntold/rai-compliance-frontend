@@ -11,7 +11,6 @@ import { SidePanel } from "./side-panel";
 import { SessionsSidebar } from "./sessions-sidebar";
 import { useToast } from "@/components/ui/use-toast";
 import { api, SessionDetail } from "@/lib/api-client";
-import { useLoading } from "@/contexts/loading-context";
 import { useProcessingLogs } from "@/components/ui/processing-logs";
 import { useTheme } from "@/context/theme-context";
 import {
@@ -23,7 +22,7 @@ import {
   validateFrameworkSubmission,
   logFrameworkSelection,
 } from "@/lib/framework-selection-utils";
-import { Moon, Sun, Loader2, Activity, ChevronLeft, ChevronRight } from "lucide-react";
+import { Moon, Sun, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 
 // Unique ID generator to prevent React key collisions
 let messageIdCounter = 0;
@@ -201,20 +200,14 @@ export function ChatInterface(): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
-  const { loadingState } = useLoading();
   const { addLog } = useProcessingLogs();
   
   // Session management state
   const [currentSession, setCurrentSession] = useState<SessionDetail | null>(null);
   const [showSessionsSidebar, setShowSessionsSidebar] = useState(true);
-  const [showVisualFeedback, setShowVisualFeedback] = useState(true);
-  const [apiCallCount, setApiCallCount] = useState(0);
-  const [lastApiCall, setLastApiCall] = useState<string | null>(null);
   
   // API tracking helper
   const trackApiCall = (apiName: string) => {
-    setApiCallCount(prev => prev + 1);
-    setLastApiCall(`${new Date().toLocaleTimeString()} - ${apiName}`);
     addLog(
       'info',
       'API',
@@ -2842,90 +2835,6 @@ You can expand each section below to review detailed findings, evidence, and sug
             </div>
           )}
 
-          {/* RAi API Activity Monitor */}
-          {showVisualFeedback && (
-            <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 border border-blue-200 dark:border-white p-6 mb-6 rounded-xl shadow-lg">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-600 rounded-lg">
-                    <Activity className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-blue-900 dark:text-white">
-                      RAi API Activity Monitor
-                    </h3>
-                    <p className="text-sm text-blue-600 dark:text-gray-300">Live system status</p>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => setShowVisualFeedback(false)}
-                  variant="ghost"
-                  size="sm"
-                  className="text-blue-600 dark:text-white hover:text-blue-800 dark:hover:text-gray-300 hover:bg-blue-100 dark:hover:bg-gray-700"
-                >
-                  Hide Panel
-                </Button>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-white/80 dark:bg-black/80 backdrop-blur-sm p-4 rounded-lg border border-blue-200 dark:border-white shadow-sm">
-                  <div className="text-sm font-medium text-blue-600 dark:text-gray-300 mb-2">Current Operation</div>
-                  <div className={`text-xl font-bold ${loadingState.isLoading ? 'text-green-600' : 'text-gray-500 dark:text-gray-400'}`}>
-                    {loadingState.isLoading ? 'ACTIVE' : 'IDLE'}
-                  </div>
-                  {loadingState.currentOperation && (
-                    <div className="text-xs text-blue-500 dark:text-gray-300 mt-2 p-2 bg-blue-50 dark:bg-gray-700 rounded truncate">
-                      {loadingState.currentOperation}
-                    </div>
-                  )}
-                </div>
-                <div className="bg-white/80 dark:bg-black/80 backdrop-blur-sm p-4 rounded-lg border border-blue-200 dark:border-white shadow-sm">
-                  <div className="text-sm font-medium text-blue-600 dark:text-gray-300 mb-2">Total API Calls</div>
-                  <div className="text-3xl font-bold text-blue-700 dark:text-white">
-                    {apiCallCount}
-                  </div>
-                </div>
-                <div className="bg-white/80 dark:bg-black/80 backdrop-blur-sm p-4 rounded-lg border border-blue-200 dark:border-white shadow-sm">
-                  <div className="text-sm font-medium text-blue-600 dark:text-gray-300 mb-2">Last API Call</div>
-                  <div className="text-sm font-medium text-green-600 dark:text-green-400 p-2 bg-green-50 dark:bg-gray-700 rounded">
-                    {lastApiCall || 'None yet'}
-                  </div>
-                </div>
-              </div>
-
-              {loadingState.isLoading && (
-                <div className="bg-white/90 dark:bg-black/90 backdrop-blur-sm p-4 rounded-lg border border-blue-200 dark:border-white shadow-sm mb-4">
-                  <h4 className="font-semibold text-blue-900 dark:text-white mb-3 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    Active Operation
-                  </h4>
-                  <div className="flex items-center justify-between py-3">
-                    <div className="flex items-center gap-3">
-                      <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-white" />
-                      <span className="font-medium text-blue-800 dark:text-gray-300">{loadingState.currentOperation || 'Processing...'}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Progress value={loadingState.progress} className="w-32 h-2" />
-                      <span className="text-sm font-medium text-blue-700 dark:text-gray-300 min-w-[3rem]">{loadingState.progress}%</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {!showVisualFeedback && (
-            <div className="bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-gray-800 dark:to-gray-900 border border-blue-200 dark:border-white p-4 mb-4 rounded-lg shadow-sm">
-              <Button
-                onClick={() => setShowVisualFeedback(true)}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-all duration-200"
-              >
-                <Activity className="h-4 w-4 mr-2" />
-                Show RAi API Activity Monitor
-              </Button>
-            </div>
-          )}
-
           <div>
             {safeMap<Message, React.ReactElement>(messages, (message) => (
               <div
@@ -2941,6 +2850,24 @@ You can expand each section below to review detailed findings, evidence, and sug
               </div>
             ))}
           </div>
+
+          {/* Upload Card at Bottom - when no document uploaded */}
+          {!chatState.documentId && messages.length > 0 && (
+            <div className="mt-8 p-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 border border-blue-200 rounded-xl shadow-sm">
+              <div className="text-center">
+                <div className="mb-4">
+                  <div className="w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                    <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">Ready to Upload Your Document?</h3>
+                  <p className="text-gray-600 mb-4">Drop your financial document here or click to browse and start your compliance analysis</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div ref={messagesEndRef} />
         </div>
 
