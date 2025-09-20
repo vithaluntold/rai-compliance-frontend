@@ -22,6 +22,7 @@ import { safeApiCall, NetworkMonitor } from "@/lib/error-handling";
 import { api } from "@/lib/api-client";
 import type { ChatState } from "./chat-interface";
 import { Card } from "@/components/ui/card";
+import { useTheme } from "@/context/theme-context";
 
 interface ChatInputProps {
   onFileUpload: (file: unknown, response?: unknown) => void;
@@ -68,6 +69,9 @@ export function ChatInput({
   const [isOnline, setIsOnline] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  
+  // Connect to global theme context (theme automatically applied to document)
+  useTheme();
 
   // Monitor network status
   useEffect(() => {

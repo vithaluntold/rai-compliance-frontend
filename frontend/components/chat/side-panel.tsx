@@ -27,6 +27,7 @@ import {KeywordExtractionDisplay} from "@/components/ui/keyword-extraction-displ
 import {AccountingStandardsDisplay} from "@/components/ui/accounting-standards-display";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import { useTheme } from "@/context/theme-context";
 
 // Type definitions for progress data
 interface ProgressData {
@@ -164,6 +165,9 @@ export function SidePanel({
   onFrameworkContinue,
   onFrameworkBack,
 }: SidePanelProps) {
+  // Connect to global theme context (theme automatically applied to document)
+  useTheme();
+  
   // Helper function to safely extract metadata values
   const getMetadataValue = (field: unknown): string => {
     if (!field) return "";

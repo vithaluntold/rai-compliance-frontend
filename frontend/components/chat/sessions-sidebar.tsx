@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { api, Session, SessionDetail } from "@/lib/api-client";
 import { useToast } from "@/components/ui/use-toast";
+import { useTheme } from "@/context/theme-context";
 import { ProcessingLogs } from "@/components/ui/processing-logs";
 
 interface SessionsSidebarProps {
@@ -63,6 +64,9 @@ export function SessionsSidebar({
   const [editingSession, setEditingSession] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const { toast } = useToast();
+  
+  // Connect to global theme context (theme automatically applied to document)
+  useTheme();
 
   // Load sessions function
   const loadSessions = useCallback(async () => {
