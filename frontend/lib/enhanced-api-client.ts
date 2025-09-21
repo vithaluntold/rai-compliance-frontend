@@ -112,7 +112,7 @@ export const enhancedApi = {
       // Removed console.log for production
 // Removed console.log for production
 return fetchWithLoading(
-        `/analysis/status/${documentId}`,
+        `/analysis/documents/${documentId}`,
         { method: "GET" },
         "Checking document status",
         true
