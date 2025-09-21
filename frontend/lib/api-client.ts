@@ -346,7 +346,7 @@ export const api = {
       try {
         // ✅ Step 1: Basic text extraction (working)
         // Step 1: Basic text extraction (logged internally)
-        const extractResponse = await fetchApi(`/analysis/documents/${documentId}/extract`, {
+        const extractResponse = await fetchApi(`/analysis/documents/${documentId}/results`, {
           method: "GET",
         });
         // Text extraction completed
