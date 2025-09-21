@@ -18,7 +18,8 @@ import {
   Edit,
   ChevronLeft,
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  Share2
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -47,6 +48,7 @@ export function SessionsSidebar({
 }: SessionsSidebarProps) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingSessionId, setLoadingSessionId] = useState<string | null>(null);
   const [editingSession, setEditingSession] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const { toast } = useToast();
@@ -100,31 +102,79 @@ toast({
   };
 
   const handleSelectSession = async (sessionId: string) => {
+    if (loadingSessionId === sessionId) return; // Prevent double-clicks
+    
     try {
+      setLoadingSessionId(sessionId);
+      
       const sessionDetail = await api.sessions.get(sessionId);
-      onSessionSelect(sessionDetail);
+      
+      if (sessionDetail) {
+        onSessionSelect(sessionDetail);
+        toast({
+          title: "Success",
+          description: "Session loaded successfully",
+        });
+      } else {
+        throw new Error("Session data is empty");
+      }
     } catch {
-      // // Removed console.error for production
-toast({
+      toast({
         title: "Error",
-        description: "Failed to load session",
+        description: "Failed to load session. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingSessionId(null);
+    }
+  };
+
+  const handleShareSession = async (sessionId: string, title: string) => {
+    try {
+      const shareUrl = `${window.location.origin}/session/${sessionId}`;
+      
+      if (navigator.share) {
+        await navigator.share({
+          title: `RAi Analysis Session: ${title}`,
+          text: `Check out this compliance analysis session: ${title}`,
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: "Link Copied",
+          description: "Session link copied to clipboard",
+        });
+      }
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to share session",
         variant: "destructive",
       });
     }
   };
 
   const handleEditSession = async (sessionId: string, newTitle: string) => {
+    if (!newTitle.trim()) {
+      toast({
+        title: "Error",
+        description: "Session title cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      await api.sessions.update(sessionId, { title: newTitle });
+      await api.sessions.update(sessionId, { title: newTitle.trim() });
       await loadSessions();
       setEditingSession(null);
       toast({
         title: "Success",
-        description: "Session renamed",
+        description: "Session renamed successfully",
       });
     } catch {
-      // // Removed console.error for production
-toast({
+      toast({
         title: "Error",
         description: "Failed to rename session",
         variant: "destructive",
@@ -132,7 +182,11 @@ toast({
     }
   };
 
-  const handleDeleteSession = async (sessionId: string) => {
+  const handleDeleteSession = async (sessionId: string, sessionTitle: string) => {
+    if (!confirm(`Are you sure you want to delete "${sessionTitle}"? This action cannot be undone.`)) {
+      return;
+    }
+
     try {
       await api.sessions.delete(sessionId);
       await loadSessions();
@@ -144,11 +198,10 @@ toast({
       
       toast({
         title: "Success",
-        description: "Session deleted",
+        description: "Session deleted successfully",
       });
     } catch {
-      // // Removed console.error for production
-toast({
+      toast({
         title: "Error",
         description: "Failed to delete session",
         variant: "destructive",
@@ -269,14 +322,19 @@ toast({
                     {(Array.isArray(sessions) ? sessions : []).map((session) => (
                       <Card
                         key={session.session_id}
-                        className={`cursor-pointer transition-all hover:shadow-md dark-card ${
+                        className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] dark-card ${
                           session.session_id === currentSessionId 
-                            ? "border-[#0087d9] bg-blue-50 dark:bg-blue-900/30" 
-                            : "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500"
-                        }`}
+                            ? "border-[#0087d9] bg-blue-50 dark:bg-blue-900/30 shadow-md" 
+                            : "border-gray-200 hover:border-[#0087d9]/50 dark:border-gray-600 dark:hover:border-[#0087d9]/50"
+                        } ${loadingSessionId === session.session_id ? "opacity-50 pointer-events-none" : ""}`}
                         onClick={() => handleSelectSession(session.session_id)}
                       >
                         <CardContent className="p-4">
+                          {loadingSessionId === session.session_id && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-black/80 rounded-lg">
+                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#0087d9]"></div>
+                            </div>
+                          )}
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0 pr-2">
                               {editingSession === session.session_id ? (
@@ -346,6 +404,15 @@ toast({
                                   <Edit className="h-4 w-4 mr-2" />
                                   Rename
                                 </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleShareSession(session.session_id, session.title);
+                                  }}
+                                >
+                                  <Share2 className="h-4 w-4 mr-2" />
+                                  Share
+                                </DropdownMenuItem>
                                 {session.status === "active" && (
                                   <DropdownMenuItem
                                     onClick={(e) => {
@@ -371,7 +438,7 @@ toast({
                                 <DropdownMenuItem
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleDeleteSession(session.session_id);
+                                    handleDeleteSession(session.session_id, session.title);
                                   }}
                                   className="text-red-600"
                                 >
