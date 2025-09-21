@@ -557,7 +557,7 @@ export function ChatInterface(): React.JSX.Element {
               setMessages(prev => [...prev, {
                 id: generateUniqueId(),
                 content: <>
-                  <XMarkIcon className="inline mr-2" />
+                  <XMarkIcon className="inline mr-2 h-4 w-4" />
                   Previous analysis failed. You can try uploading the document again.
                 </>,
                 timestamp: new Date(),
@@ -779,7 +779,7 @@ toast({
               setFrameworkError("No frameworks available");
               addMessage(
                 <>
-                  <XMarkIcon className="inline mr-2" />
+                  <XMarkIcon className="inline mr-2 h-4 w-4" />
                   Sorry, no accounting frameworks are currently available. Please contact support or try again later.
                 </>,
                 "system",
@@ -799,7 +799,7 @@ toast({
             );
             addMessage(
               <>
-                <XMarkIcon className="inline mr-2" />
+                <XMarkIcon className="inline mr-2 h-4 w-4" />
                 There was an issue loading the frameworks. Please refresh the page or contact support if the problem persists.
               </>,
               "system"
@@ -811,7 +811,7 @@ toast({
 
           addMessage(
             <>
-              <XMarkIcon className="inline mr-2" />
+              <XMarkIcon className="inline mr-2 h-4 w-4" />
               Unable to load accounting frameworks. Please check your internet connection and try again, or contact support if the issue continues.
             </>,
             "system",
@@ -2018,7 +2018,7 @@ You can review and edit these details in the side panel before proceeding to fra
         const loadingMessageId = addMessage(
           <>
             <div className="flex items-center mb-3">
-              <RobotIcon className="mr-2" />
+              <RobotIcon className="mr-2 h-4 w-4" />
               <span className="font-semibold">AI Analysis in Progress...</span>
             </div>
             <div className="space-y-2">
@@ -2076,7 +2076,7 @@ You can review and edit these details in the side panel before proceeding to fra
             addMessage(
               <>
                 <div className="flex items-center mb-3">
-                  <LightningIcon className="mr-2" />
+                  <LightningIcon className="mr-2 h-4 w-4" />
                   <span className="font-bold">AI Recommendations for {framework.name}:</span>
                 </div>
                 <div className="mb-4">
@@ -2301,7 +2301,22 @@ You can review and edit these details in the side panel before proceeding to fra
 
   // Handle navigation to results page
   const handleGoToResults = (documentId: string) => {
-    router.push(`/results/${documentId}`);
+    console.log('DEBUG: handleGoToResults called with documentId:', documentId);
+    
+    if (!documentId) {
+      console.log('DEBUG: No documentId, showing alert');
+      alert('Error: No document ID available. Please try refreshing the page.');
+      return;
+    }
+    
+    console.log('DEBUG: Attempting to navigate to:', `/results/${documentId}`);
+    try {
+      router.push(`/results/${documentId}`);
+      console.log('DEBUG: Navigation triggered successfully');
+    } catch (error) {
+      console.log('DEBUG: Navigation error:', error);
+      alert('Error navigating to results page. Please try again.');
+    }
   };
 
   const startComplianceAnalysis = async (
@@ -2469,7 +2484,20 @@ You can review and edit these details in the side panel before proceeding to fra
               id: generateUniqueId(),
               type: "system",
               content:
-                `✅ **Compliance Analysis Complete!**\n\n🎯 **Analysis Summary:**\n📋 **Standards Processed:** ${fullResults.sections?.length || 'Multiple'} compliance sections\n🔍 **Items Evaluated:** ${Array.isArray(fullResults.sections) ? fullResults.sections.reduce((total, section) => total + (Array.isArray(section.items) ? section.items.length : 0), 0) : 'All'} compliance requirements\n⚡ **Processing Time:** Backend analysis completed\n\n📊 **Results Available:**\n• Detailed compliance checklist\n• Evidence documentation\n• AI-generated recommendations\n• Risk assessments and findings\n\n**Click below to review your professional compliance report.**`,
+                `✅ **Compliance Analysis Complete!**
+
+• **Analysis Summary:**
+• **Standards Processed:** ${fullResults.sections?.length || 'Multiple'} compliance sections
+• **Items Evaluated:** ${Array.isArray(fullResults.sections) ? fullResults.sections.reduce((total, section) => total + (Array.isArray(section.items) ? section.items.length : 0), 0) : 'All'} compliance requirements
+• **Processing Time:** Backend analysis completed
+
+• **Results Available:**
+• Detailed compliance checklist
+• Evidence documentation
+• AI-generated recommendations
+• Risk assessments and findings
+
+**Click below to review your professional compliance report.**`,
               timestamp: new Date(),
               showResultsButton: true,
               documentId: chatState.documentId,
@@ -2589,7 +2617,7 @@ You can review and edit these details in the side panel before proceeding to fra
             }));
 
             addMessage(
-              "⚠️ **Analysis Completed with Warnings**\n\n🔄 **Processing Status:** Backend analysis finished with some non-critical issues\n📊 **Results Available:** Partial compliance data has been generated\n🛠️ **Recommendation:** Review available results and re-run analysis if needed\n\n*Most compliance data should still be accessible for review.*",
+              "⚠️ **Analysis Completed with Warnings**\n\n• **Processing Status:** Backend analysis finished with some non-critical issues\n• **Results Available:** Partial compliance data has been generated\n• **Recommendation:** Review available results and re-run analysis if needed\n\n*Most compliance data should still be accessible for review.*",
               "system",
             );
 
@@ -3210,3 +3238,4 @@ You can expand each section below to review detailed findings, evidence, and sug
     </div>
   );
 }
+

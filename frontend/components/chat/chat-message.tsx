@@ -436,13 +436,22 @@ export function ChatMessage({
                   <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
                     <Button
                       onClick={() => onGoToResults(message.documentId!)}
-                      className="bg-[#0087d9] hover:bg-blue-700 text-white h-8 px-2"
+                      className="bg-[#0087d9] hover:bg-blue-700 text-white h-8 px-2 cursor-pointer"
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
                       View Detailed Results
                     </Button>
                   </div>
                 )}
+
+              {/* Temporary debug info */}
+              {message.showResultsButton && (
+                <div className="mt-2 text-xs text-gray-500 bg-gray-100 p-2 rounded">
+                  DEBUG: showResultsButton={String(message.showResultsButton)}, 
+                  documentId={message.documentId || 'undefined'}, 
+                  onGoToResults={onGoToResults ? 'function' : 'undefined'}
+                </div>
+              )}
 
               {renderMetadata()}
             </div>
