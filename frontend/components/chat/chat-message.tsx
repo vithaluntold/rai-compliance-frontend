@@ -297,41 +297,23 @@ export function ChatMessage({
                 <div className={`prose prose-sm max-w-none ${
                   message.type === "user" ? "prose-invert" : ""
                 }`}>
-                  {/* Check if content contains HTML table */}
-                  {message.content.includes('<table') ? (
-                    <>
-                      {/* Render text content before the table */}
-                      {message.content.split('<table')[0]?.split("\n").map((line, index) => {
-                        if (line.trim() === "") return <br key={index} />;
-                        if (line.startsWith("**") && line.endsWith("**")) {
-                          return (
-                            <h4 key={index} className={`font-semibold mb-1 mt-2 ${
-                              message.type === "user" ? "text-white" : ""
-                            }`}>
-                              {line.slice(2, -2)}
-                            </h4>
-                          );
-                        }
-                        return (
-                          <p key={index} className={`mb-1 ${
-                            message.type === "user" ? "text-white" : ""
-                          }`}>
-                            {line}
-                          </p>
-                        );
-                      })}
-                      
-                      {/* Render the table */}
-                      <div 
-                        dangerouslySetInnerHTML={{ 
-                          __html: '<table' + (message.content.split('<table')[1]?.split('</table>')[0] || '') + '</table>'
-                        }} 
-                      />
-                      
-                      {/* Render text content after the table */}
-                      {message.content.split('</table>')[1] && 
-                        message.content.split('</table>')[1]?.split("\n").map((line, index) => {
+                  {/* Check if content is React element or string */}
+                  {typeof message.content === 'string' ? (
+                    /* Handle string content with table/formatting logic */
+                    message.content.includes('<table') ? (
+                      <>
+                        {/* Render text content before the table */}
+                        {message.content.split('<table')[0]?.split("\n").map((line, index) => {
                           if (line.trim() === "") return <br key={index} />;
+                          if (line.startsWith("**") && line.endsWith("**")) {
+                            return (
+                              <h4 key={index} className={`font-semibold mb-1 mt-2 ${
+                                message.type === "user" ? "text-white" : ""
+                              }`}>
+                                {line.slice(2, -2)}
+                              </h4>
+                            );
+                          }
                           return (
                             <p key={index} className={`mb-1 ${
                               message.type === "user" ? "text-white" : ""
@@ -339,12 +321,32 @@ export function ChatMessage({
                               {line}
                             </p>
                           );
-                        })
-                      }
-                    </>
-                  ) : (
-                    /* Original text processing */
-                    message.content.split("\n").map((line, index) => {
+                        })}
+                        
+                        {/* Render the table */}
+                        <div 
+                          dangerouslySetInnerHTML={{ 
+                            __html: '<table' + (message.content.split('<table')[1]?.split('</table>')[0] || '') + '</table>'
+                          }} 
+                        />
+                        
+                        {/* Render text content after the table */}
+                        {message.content.split('</table>')[1] && 
+                          message.content.split('</table>')[1]?.split("\n").map((line, index) => {
+                            if (line.trim() === "") return <br key={index} />;
+                            return (
+                              <p key={index} className={`mb-1 ${
+                                message.type === "user" ? "text-white" : ""
+                              }`}>
+                                {line}
+                              </p>
+                            );
+                          })
+                        }
+                      </>
+                    ) : (
+                      /* Original text processing */
+                      message.content.split("\n").map((line, index) => {
                       // Handle markdown-style formatting
                       if (line.startsWith("**") && line.endsWith("**")) {
                         return (
@@ -391,6 +393,10 @@ export function ChatMessage({
                         </p>
                       );
                     })
+                    )
+                  ) : (
+                    /* Render React element content directly */
+                    message.content
                   )}
                 </div>
               )}

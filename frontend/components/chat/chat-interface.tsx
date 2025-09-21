@@ -23,6 +23,13 @@ import {
   logFrameworkSelection,
 } from "@/lib/framework-selection-utils";
 import { Moon, Sun, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { 
+  XMarkIcon, 
+  LightningIcon, 
+  RobotIcon, 
+  ChartIcon, 
+  SearchIcon
+} from "@/components/ui/professional-icons";
 
 // Unique ID generator to prevent React key collisions
 let messageIdCounter = 0;
@@ -100,8 +107,8 @@ interface DocumentMetadata {
 
 interface SuggestedStandard {
   standard_id: string;
-  standard_name: string;
-  explanation: string;
+  standard_title: string;
+  reasoning: string;
   relevance_score: number;
 }
 
@@ -118,7 +125,7 @@ interface AnalysisStatusResponse {
 export interface Message {
   id: string;
   type: "user" | "system" | "loading" | "component";
-  content: string;
+  content: string | React.ReactNode;
   timestamp: Date;
   component?:
     | "analysis-mode-selection"
@@ -474,7 +481,7 @@ export function ChatInterface(): React.JSX.Element {
               // Add a message about loaded metadata
               setMessages(prev => [...prev, {
                 id: generateUniqueId(),
-                content: `✅ Document metadata loaded: ${simpleMetadata.company_name || 'Unknown Company'}`,
+                content: `✓ Document metadata loaded: ${simpleMetadata.company_name || 'Unknown Company'}`,
                 timestamp: new Date(),
                 type: "system",
               }]);
@@ -526,7 +533,7 @@ export function ChatInterface(): React.JSX.Element {
 // Still show that document is completed even if results fail
                 setMessages(prev => [...prev, {
                   id: generateUniqueId(),
-                  content: `⚠️ Analysis was completed, but results could not be loaded. You may need to re-run the analysis.`,
+                  content: `⚠ Analysis was completed, but results could not be loaded. You may need to re-run the analysis.`,
                   timestamp: new Date(),
                   type: "system",
                 }]);
@@ -549,7 +556,10 @@ export function ChatInterface(): React.JSX.Element {
               // If failed, show error message
               setMessages(prev => [...prev, {
                 id: generateUniqueId(),
-                content: `❌ Previous analysis failed. You can try uploading the document again.`,
+                content: <>
+                  <XMarkIcon className="inline mr-2" />
+                  Previous analysis failed. You can try uploading the document again.
+                </>,
                 timestamp: new Date(),
                 type: "system",
               }]);
@@ -768,7 +778,10 @@ toast({
             if (response['frameworks'].length === 0) {
               setFrameworkError("No frameworks available");
               addMessage(
-                "❌ Sorry, no accounting frameworks are currently available. Please contact support or try again later.",
+                <>
+                  <XMarkIcon className="inline mr-2" />
+                  Sorry, no accounting frameworks are currently available. Please contact support or try again later.
+                </>,
                 "system",
               );
             } else {
@@ -785,8 +798,11 @@ toast({
               "Failed to load frameworks: Invalid response format",
             );
             addMessage(
-              "❌ There was an issue loading the frameworks. Please refresh the page or contact support if the problem persists.",
-              "system",
+              <>
+                <XMarkIcon className="inline mr-2" />
+                There was an issue loading the frameworks. Please refresh the page or contact support if the problem persists.
+              </>,
+              "system"
             );
           }
         } catch (error: unknown) {
@@ -794,7 +810,10 @@ toast({
           setFrameworkError(errorMessage);
 
           addMessage(
-            "❌ Unable to load accounting frameworks. Please check your internet connection and try again, or contact support if the issue continues.",
+            <>
+              <XMarkIcon className="inline mr-2" />
+              Unable to load accounting frameworks. Please check your internet connection and try again, or contact support if the issue continues.
+            </>,
             "system",
           );
 
@@ -847,7 +866,7 @@ toast({
           clearInterval(progressInterval!);
           setChatState((prev) => ({ ...prev, isProcessing: false }));
           addMessage(
-            "❌ **Analysis Failed**\n\n🚨 **Error:** Backend processing encountered a critical error\n📋 **Status:** Unable to complete compliance analysis\n🔧 **Troubleshooting:**\n• Check document format and quality\n• Ensure document contains financial statements\n• Try re-uploading the document\n• Contact support if issue persists\n\n*Please try again with a different document or reach out for assistance.*",
+            "⚠ **Analysis Failed**\n\n● **Error:** Backend processing encountered a critical error\n● **Status:** Unable to complete compliance analysis\n● **Troubleshooting:**\n• Check document format and quality\n• Ensure document contains financial statements\n• Try re-uploading the document\n• Contact support if issue persists\n\n*Please try again with a different document or reach out for assistance.*",
             "system",
           );
         }
@@ -910,7 +929,7 @@ toast({
   }, [chatState.documentId, pollingTimer]); // Reset when document changes
 
   const addMessage = (
-    content: string,
+    content: string | React.ReactNode,
     type: "user" | "system" | "loading" | "component",
     metadata?: Record<string, unknown>,
   ) => {
@@ -1069,12 +1088,7 @@ toast({
     const response = uploadResponse as Record<string, unknown> | undefined;
     
     // 🔍 DEBUG: Log what we're receiving
-    console.log('🔍 handleFileUpload called with:', {
-      fileName: file.name,
-      hasUploadResponse: !!uploadResponse,
-      uploadResponse: uploadResponse,
-      documentId: response?.['document_id']
-    });
+    // Debug: handleFileUpload called
     
     try {
       // Track the file upload API call
@@ -1117,16 +1131,16 @@ toast({
         if (!currentSession) {
           try {
             await createNewSession(file.name, documentId);
-          } catch (error) {
-            console.log('⚠️ Session creation failed, continuing without session:', error);
+          } catch {
+            // Session creation failed, continuing without session
             // Don't block upload flow if session creation fails
           }
         } else {
           // Update existing session title to match new file
           try {
             await updateSessionWithFileName(file.name, documentId);
-          } catch (error) {
-            console.log('⚠️ Session update failed, continuing:', error);
+          } catch {
+            // Session update failed, continuing
             // Don't block upload flow if session update fails
           }
         }
@@ -1197,7 +1211,7 @@ toast({
             moveToNextStep("metadata");
             
             addMessage(
-              `**Company Information Extracted Successfully!**\n\n**Company Name:** ${simpleMetadata.company_name || "Unknown Company"}\n\n**Nature of Business:** ${simpleMetadata.nature_of_business || "Not specified"}\n\n**Operational Demographics:** ${simpleMetadata.operational_demographics || "Not specified"}\n\n**Type of Financial Statements:** ${simpleMetadata.financial_statements_type || "Not specified"}\n\nYou can review and edit these details in the side panel before proceeding to framework selection.`,
+              `✓ **Company Information Extracted Successfully!**\n\n**Company Name:** ${simpleMetadata.company_name || "Unknown Company"}\n\n**Nature of Business:** ${simpleMetadata.nature_of_business || "Not specified"}\n\n**Operational Demographics:** ${simpleMetadata.operational_demographics || "Not specified"}\n\n**Type of Financial Statements:** ${simpleMetadata.financial_statements_type || "Not specified"}\n\nYou can review and edit these details in the side panel before proceeding to framework selection.`,
               "system",
               { documentMetadata: simpleMetadata },
             );
@@ -1254,16 +1268,16 @@ toast({
       if (!currentSession) {
         try {
           await createNewSession(file.name);
-        } catch (error) {
-          console.log('⚠️ Session creation failed, continuing without session:', error);
+        } catch {
+          // Session creation failed, continuing without session
           // Don't block upload flow if session creation fails
         }
       } else {
         // Update existing session title to match new file
         try {
           await updateSessionWithFileName(file.name);
-        } catch (error) {
-          console.log('⚠️ Session update failed, continuing:', error);
+        } catch {
+          // Session update failed, continuing
           // Don't block upload flow if session update fails
         }
       }
@@ -1326,7 +1340,7 @@ toast({
             const completionMessage: Message = {
               id: generateUniqueId(),
               type: "system",
-              content: "🎉 **Analysis Complete!**\n\nYour compliance analysis has been successfully completed. You can now review the detailed results, including compliance scores, identified issues, and recommendations.",
+              content: "✓ **Analysis Complete!**\n\nYour compliance analysis has been successfully completed. You can now review the detailed results, including compliance scores, identified issues, and recommendations.",
               timestamp: new Date(),
               showResultsButton: true,
               documentId: documentId,
@@ -1453,8 +1467,8 @@ toast({
         if (currentSession) {
           try {
             await updateSessionWithFileName(pendingFile.name, response['document_id']);
-          } catch (error) {
-            console.log('⚠️ Session update failed, continuing:', error);
+          } catch {
+            // Session update failed, continuing
             // Don't block upload flow if session update fails
           }
         }
@@ -2002,7 +2016,27 @@ You can review and edit these details in the side panel before proceeding to fra
       if (chatState.documentMetadata) {
         // Add loading message with spinner and more detailed status
         const loadingMessageId = addMessage(
-          "🤖 AI Analysis in Progress...\n\n📊 Analyzing your company profile\n🔍 Evaluating business requirements\n⚡ Generating personalized accounting standards recommendations\n\nThis may take a few seconds...",
+          <>
+            <div className="flex items-center mb-3">
+              <RobotIcon className="mr-2" />
+              <span className="font-semibold">AI Analysis in Progress...</span>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center">
+                <ChartIcon className="mr-2 h-4 w-4" />
+                <span>Analyzing your company profile</span>
+              </div>
+              <div className="flex items-center">
+                <SearchIcon className="mr-2 h-4 w-4" />
+                <span>Evaluating business requirements</span>
+              </div>
+              <div className="flex items-center">
+                <LightningIcon className="mr-2 h-4 w-4" />
+                <span>Generating personalized accounting standards recommendations</span>
+              </div>
+            </div>
+            <p className="mt-3 text-sm text-gray-600">This may take a few seconds...</p>
+          </>,
           "loading",
         );
 
@@ -2023,18 +2057,36 @@ You can review and edit these details in the side panel before proceeding to fra
           // Remove loading message before adding results
           setMessages(prev => prev.filter(msg => msg.id !== loadingMessageId));
 
-          addLog('success', 'AI', '✅ AI Suggestions Response received', { suggestedStandards });
+          addLog('success', 'AI', 'AI Suggestions Response received', { suggestedStandards });
 
           if (suggestedStandards?.['suggested_standards'] && Array.isArray(suggestedStandards['suggested_standards']) && suggestedStandards['suggested_standards'].length > 0) {
+            // Helper function to process bold formatting in text
+            const processBoldText = (text: string): string => {
+              if (!text) return '';
+              return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            };
+
             // Create HTML table for standards display
             const tableRows = suggestedStandards['suggested_standards'].map((s: SuggestedStandard) => 
-              `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">${s.standard_id}</td><td style="padding: 8px; border: 1px solid #ddd;">${s.standard_name || s.standard_id}</td><td style="padding: 8px; border: 1px solid #ddd;">${s.explanation || 'Recommended'}</td></tr>`
+              `<tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">${s.standard_id}</td><td style="padding: 8px; border: 1px solid #ddd;">${s.standard_title || s.standard_id}</td><td style="padding: 8px; border: 1px solid #ddd;">${processBoldText(s.reasoning || 'Recommended')}</td></tr>`
             ).join('');
             
             const standardsTable = `<table style="width: 100%; border-collapse: collapse; margin: 10px 0;"><thead><tr style="background-color: #f5f5f5;"><th style="padding: 10px; border: 1px solid #ddd; text-align: left;">STD NO</th><th style="padding: 10px; border: 1px solid #ddd; text-align: left;">STD TITLE</th><th style="padding: 10px; border: 1px solid #ddd; text-align: left;">REASON</th></tr></thead><tbody>${tableRows}</tbody></table>`;
             
             addMessage(
-              `✨ **AI Recommendations for ${framework.name}:**\n\nBased on your company profile (${chatState.documentMetadata.company_name || 'N/A'} - ${chatState.documentMetadata.operational_demographics || 'N/A'}), I recommend these accounting standards:\n\n${standardsTable}\n\nThese recommendations consider your business nature, geographical location, and statement types. The checklist is now ready with these pre-selected standards.`,
+              <>
+                <div className="flex items-center mb-3">
+                  <LightningIcon className="mr-2" />
+                  <span className="font-bold">AI Recommendations for {framework.name}:</span>
+                </div>
+                <div className="mb-4">
+                  <p>Based on your company profile ({chatState.documentMetadata.company_name || 'N/A'} - {chatState.documentMetadata.operational_demographics || 'N/A'}), I recommend these accounting standards:</p>
+                </div>
+                <div className="my-4" dangerouslySetInnerHTML={{ __html: standardsTable }} />
+                <div className="mt-4">
+                  <p>These recommendations consider your business nature, geographical location, and statement types. The checklist is now ready with these pre-selected standards.</p>
+                </div>
+              </>,
               "system",
             );
 
@@ -2066,7 +2118,7 @@ You can review and edit these details in the side panel before proceeding to fra
             // Standards step already set at the beginning of framework selection
           }
         } catch (suggestionError: unknown) {
-          addLog('error', 'AI', '❌ Standards suggestion error', { 
+          addLog('error', 'AI', 'Standards suggestion error', { 
             error: suggestionError instanceof Error ? suggestionError.message : String(suggestionError)
           });
           
@@ -2173,7 +2225,7 @@ You can review and edit these details in the side panel before proceeding to fra
 
         // Add success message
         addMessage(
-          `✅ **Framework Configuration Complete!**\n\n🎯 **Selected Framework:** ${selectedFramework}\n📋 **Active Standards:** ${Array.isArray(selectedStandards) ? selectedStandards.length : 0} standards selected\n📊 **Compliance Scope:** ${Array.isArray(selectedStandards) ? selectedStandards.join(", ") : "none"}\n🔍 **Analysis Scope:** Approximately ${Array.isArray(selectedStandards) ? selectedStandards.length * 50 : 0}+ compliance requirements\n\n**Ready to proceed with compliance analysis!**`,
+          `✓ **Framework Configuration Complete!**\n\n● **Selected Framework:** ${selectedFramework}\n● **Active Standards:** ${Array.isArray(selectedStandards) ? selectedStandards.length : 0} standards selected\n● **Compliance Scope:** ${Array.isArray(selectedStandards) ? selectedStandards.join(", ") : "none"}\n● **Analysis Scope:** Approximately ${Array.isArray(selectedStandards) ? selectedStandards.length * 50 : 0}+ compliance requirements\n\n**Ready to proceed with compliance analysis!**`,
           "system",
         );
 

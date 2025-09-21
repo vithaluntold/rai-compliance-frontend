@@ -236,11 +236,7 @@ export function ChatInput({
 
       // Success handling - PASS THE RESPONSE OBJECT TO CHAT-INTERFACE
       setTimeout(() => {
-        console.log('🔍 chat-input calling onFileUpload with:', {
-          fileName: file.name,
-          hasResponse: !!response,
-          response: response
-        });
+        // Debug: chat-input calling onFileUpload
         onFileUpload(file, response);
         onUploadComplete?.();
       }, 500);
