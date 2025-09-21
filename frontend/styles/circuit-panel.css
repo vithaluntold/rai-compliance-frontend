@@ -1,0 +1,306 @@
+/*
+ * Circuit Panel Component Styles
+ * Modern circuit board aesthetic with animations and visual effects
+ */
+
+/* Circuit Board Base Styles */
+.circuit-panel {
+  background: linear-gradient(135deg, #0a0f1a 0%, #1a1f2e 100%);
+  border: 1px solid #2d3748;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.circuit-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(13, 148, 136, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(147, 51, 234, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Circuit Lines Animation */
+.circuit-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.circuit-line {
+  position: absolute;
+  background: linear-gradient(90deg, transparent, #0087d9, transparent);
+  height: 1px;
+  animation: circuit-flow 3s infinite linear;
+}
+
+.circuit-line.vertical {
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(180deg, transparent, #0087d9, transparent);
+  animation: circuit-flow-vertical 4s infinite linear;
+}
+
+.circuit-line.line-1 {
+  top: 20%;
+  animation-delay: 0s;
+}
+
+.circuit-line.line-2 {
+  left: 30%;
+  animation-delay: 1s;
+}
+
+.circuit-line.line-3 {
+  top: 70%;
+  animation-delay: 2s;
+}
+
+@keyframes circuit-flow {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes circuit-flow-vertical {
+  0% { transform: translateY(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+
+/* Circuit Card Styles */
+.circuit-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(45, 55, 72, 0.8);
+  border-radius: 6px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.circuit-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 135, 217, 0.1), transparent);
+  transition: left 0.6s ease;
+}
+
+.circuit-card:hover::before {
+  left: 100%;
+}
+
+.circuit-card:hover {
+  border-color: #0087d9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 135, 217, 0.2);
+}
+
+.circuit-card.collapsed {
+  border-color: rgba(45, 55, 72, 0.5);
+}
+
+/* Circuit Button Styles */
+.circuit-button {
+  background: linear-gradient(135deg, #0087d9 0%, #005a94 100%);
+  border: 1px solid #0087d9;
+  border-radius: 4px;
+  color: white;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.circuit-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.4s ease;
+}
+
+.circuit-button:hover::before {
+  left: 100%;
+}
+
+.circuit-button:hover {
+  background: linear-gradient(135deg, #1096d4 0%, #0066a6 100%);
+  box-shadow: 0 0 20px rgba(0, 135, 217, 0.4);
+  transform: translateY(-1px);
+}
+
+.circuit-button:active {
+  transform: translateY(0);
+  box-shadow: 0 0 10px rgba(0, 135, 217, 0.3);
+}
+
+.circuit-button.secondary {
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+  border-color: #4b5563;
+  color: #d1d5db;
+}
+
+.circuit-button.secondary:hover {
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  box-shadow: 0 0 20px rgba(75, 85, 99, 0.4);
+}
+
+/* Status Indicators */
+.circuit-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid;
+}
+
+.circuit-status.success {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.circuit-status.warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #f59e0b;
+}
+
+.circuit-status.error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.circuit-status.processing {
+  background: rgba(0, 135, 217, 0.1);
+  border-color: rgba(0, 135, 217, 0.3);
+  color: #0087d9;
+}
+
+/* Progress Bar Circuit Style */
+.circuit-progress {
+  background: rgba(45, 55, 72, 0.5);
+  border-radius: 8px;
+  height: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.circuit-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0087d9, #1096d4);
+  border-radius: 8px;
+  transition: width 0.5s ease;
+  position: relative;
+}
+
+.circuit-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3));
+  animation: progress-shine 2s infinite;
+}
+
+@keyframes progress-shine {
+  0% { transform: translateX(-20px); }
+  100% { transform: translateX(100px); }
+}
+
+/* Performance progress bar */
+.circuit-progress-85 {
+  width: 85%;
+}
+
+/* Grid Layout */
+.circuit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.circuit-grid.single {
+  grid-template-columns: 1fr;
+}
+
+.circuit-grid.triple {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+/* Compact spacing */
+.circuit-compact {
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+/* Circuit Node Style */
+.circuit-node {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #0087d9;
+  box-shadow: 0 0 8px rgba(0, 135, 217, 0.6);
+  position: relative;
+}
+
+.circuit-node::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: white;
+  animation: node-pulse 2s infinite;
+}
+
+@keyframes node-pulse {
+  0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.5); }
+}
+
+/* Dark mode adjustments */
+.dark .circuit-panel {
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+  border-color: #333333;
+}
+
+.dark .circuit-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .circuit-card:hover {
+  border-color: #0087d9;
+}

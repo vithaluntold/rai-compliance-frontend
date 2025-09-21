@@ -7,6 +7,7 @@ import {Label} from "@/components/ui/label";
 import {Badge} from "@/components/ui/badge";
 import {Progress} from "@/components/ui/progress";
 import {Textarea} from "@/components/ui/textarea";
+import {Collapsible, CollapsibleContent} from "@/components/ui/collapsible";
 import "../../styles/progress-glow.css";
 import {
   Building,
@@ -20,6 +21,13 @@ import {
   BarChart3,
   Loader2,
   Zap,
+  ChevronRight,
+  ChevronDown,
+  Activity,
+  Cpu,
+  Database,
+  Monitor,
+  Target,
 } from "lucide-react";
 import type { ChatState, ChatStep } from "./chat-interface";
 import FrameworkSelectionPanel from "./FrameworkSelectionPanel";
@@ -201,6 +209,23 @@ export function SidePanel({
     financial_statements_type: "",
   });
 
+  // Circuit panel collapsible state management
+  const [collapsedSections, setCollapsedSections] = useState({
+    progress: false,    // Progress steps - always visible
+    document: false,    // Document info - always visible
+    metadata: false,    // Company metadata - always visible
+    framework: true,    // Framework selection - collapsed by default
+    analysis: false,    // Analysis progress - always visible
+    results: false,     // Results summary - always visible
+  });
+
+  const toggleSection = (section: keyof typeof collapsedSections) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   // Update edited metadata when chatState.documentMetadata changes
   useEffect(() => {
     if (chatState.documentMetadata) {
@@ -246,6 +271,136 @@ export function SidePanel({
     setIsEditingMetadata(false);
   };
 
+  // Circuit Board Style Components
+  const CircuitCard = ({ 
+    title, 
+    icon: Icon, 
+    children, 
+    collapsible = false, 
+    sectionKey, 
+    className = "",
+    variant = "default" 
+  }: { 
+    title: string; 
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>; 
+    children: React.ReactNode; 
+    collapsible?: boolean; 
+    sectionKey?: keyof typeof collapsedSections;
+    className?: string;
+    variant?: "default" | "active" | "completed" | "processing";
+  }) => {
+    const isCollapsed = sectionKey ? collapsedSections[sectionKey] : false;
+    
+    const variantStyles = {
+      default: "bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700",
+      active: "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700 shadow-lg shadow-blue-500/10",
+      completed: "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 shadow-lg shadow-green-500/10",
+      processing: "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 shadow-lg shadow-amber-500/10"
+    };
+
+    const CardContent = () => (
+      <div className={`relative ${variantStyles[variant]} border rounded-lg overflow-hidden ${className}`}>
+        {/* Circuit board traces */}
+        <div className="absolute inset-0 opacity-20">
+          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <defs>
+              <pattern id={`circuit-${title}`} x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                <path d="M 0 10 L 5 10 L 5 5 L 15 5 L 15 15 L 10 15 L 10 20" stroke="#0087d9" strokeWidth="0.5" fill="none" opacity="0.3"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill={`url(#circuit-${title})`} />
+          </svg>
+        </div>
+
+        {/* Header */}
+        <div className={`relative z-10 ${collapsible ? 'cursor-pointer' : ''}`} onClick={collapsible && sectionKey ? () => toggleSection(sectionKey) : undefined}>
+          <div className="flex items-center justify-between p-3 border-b border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-black/50 backdrop-blur-sm">
+            <div className="flex items-center space-x-3">
+              <div className="p-1.5 rounded-md bg-[#0087d9]/10 border border-[#0087d9]/20">
+                <Icon className="w-4 h-4 text-[#0087d9]" />
+              </div>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">{title}</span>
+              {variant === "processing" && (
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+                  <div className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse delay-75"></div>
+                  <div className="w-1 h-1 bg-amber-400 rounded-full animate-pulse delay-150"></div>
+                </div>
+              )}
+            </div>
+            
+            {collapsible && (
+              <Button variant="ghost" size="sm" className="p-1 h-auto hover:bg-[#0087d9]/10">
+                {isCollapsed ? (
+                  <ChevronRight className="w-4 h-4 text-[#0087d9]" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-[#0087d9]" />
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Content */}
+        {collapsible && sectionKey ? (
+          <Collapsible open={!isCollapsed}>
+            <CollapsibleContent>
+              <div className="relative z-10 p-3 bg-white/80 dark:bg-black/80 backdrop-blur-sm">
+                {children}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        ) : (
+          <div className="relative z-10 p-3 bg-white/80 dark:bg-black/80 backdrop-blur-sm">
+            {children}
+          </div>
+        )}
+      </div>
+    );
+
+    return <CardContent />;
+  };
+
+  const CircuitButton = ({ 
+    children, 
+    onClick, 
+    variant = "default", 
+    size = "default",
+    className = "",
+    disabled = false 
+  }: { 
+    children: React.ReactNode; 
+    onClick?: () => void; 
+    variant?: "default" | "primary" | "success" | "warning" | "danger";
+    size?: "sm" | "default" | "lg";
+    className?: string;
+    disabled?: boolean;
+  }) => {
+    const variantStyles = {
+      default: "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600",
+      primary: "bg-[#0087d9] hover:bg-blue-700 text-white border-[#0087d9] shadow-lg shadow-blue-500/25",
+      success: "bg-green-500 hover:bg-green-600 text-white border-green-500 shadow-lg shadow-green-500/25",
+      warning: "bg-amber-500 hover:bg-amber-600 text-white border-amber-500 shadow-lg shadow-amber-500/25",
+      danger: "bg-red-500 hover:bg-red-600 text-white border-red-500 shadow-lg shadow-red-500/25"
+    };
+
+    const sizeStyles = {
+      sm: "px-2 py-1 text-xs h-7",
+      default: "px-3 py-2 text-sm h-9",
+      lg: "px-4 py-3 text-base h-11"
+    };
+
+    return (
+      <Button
+        onClick={onClick}
+        disabled={disabled}
+        className={`relative overflow-hidden border transition-all duration-200 hover:scale-105 hover:shadow-lg ${variantStyles[variant]} ${sizeStyles[size]} ${className} ${disabled ? 'opacity-50 cursor-not-allowed hover:scale-100 hover:shadow-none' : ''}`}
+      >
+        {children}
+      </Button>
+    );
+  };
+
   // Step indicator component (moved from chat header)
   const renderStepIndicator = () => {
     if (!chatState.currentStep || !chatSteps.length) return null;
@@ -275,16 +430,12 @@ export function SidePanel({
 
   const renderProgressSteps = () => {
     const steps = [
-      { id: "upload", name: "Document Upload", icon: FileText },
-      { id: "metadata", name: "Metadata Confirmation", icon: Building },
-      {
-        id: "framework-selection",
-        name: "Framework Selection",
-        icon: Settings,
-      },
-      { id: "processing-mode", name: "Processing Mode", icon: Zap },
-      { id: "analysis", name: "Compliance Analysis", icon: BarChart3 },
-      { id: "results", name: "Results Review", icon: CheckCircle },
+      { id: "upload", name: "Upload", icon: FileText, detail: "Document Processing" },
+      { id: "metadata", name: "Metadata", icon: Building, detail: "Company Info" },
+      { id: "framework-selection", name: "Framework", icon: Settings, detail: "Standards Selection" },
+      { id: "processing-mode", name: "Mode", icon: Zap, detail: "Analysis Type" },
+      { id: "analysis", name: "Analysis", icon: BarChart3, detail: "Compliance Check" },
+      { id: "results", name: "Results", icon: CheckCircle, detail: "Review Report" },
     ];
 
     const currentStepIndex = steps.findIndex(
@@ -292,99 +443,101 @@ export function SidePanel({
     );
 
     return (
-      <Card className="p-4 mb-4 bg-white dark:bg-black border-gray-200 dark:border-white">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-[#0087d9]">Analysis Progress</h3>
-        </div>
-
-        <div className="space-y-3">
+      <CircuitCard 
+        title="Analysis Progress" 
+        icon={Activity} 
+        sectionKey="progress"
+        variant="active"
+        className="mb-3"
+      >
+        <div className="grid grid-cols-2 gap-2">
           {steps.map((step, index) => {
             const isCompleted = index < currentStepIndex;
             const isActive = index === currentStepIndex;
             const Icon = step.icon;
 
             return (
-              <div key={step.id} className="flex items-center space-x-3">
-                <motion.div
-                  className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center relative progress-step-transition ${
-                    isCompleted
-                      ? "bg-green-500 text-white completed-step"
-                      : isActive
-                        ? "bg-[#0087d9] text-white step-icon-glow"
-                        : "bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-500 pending-step"
-                  }`}
-                  animate={
-                    isActive && !isCompleted
-                      ? {
-                          boxShadow: [
-                            "0 0 0 0 rgba(0, 135, 217, 0.4)",
-                            "0 0 0 8px rgba(0, 135, 217, 0)",
-                            "0 0 0 0 rgba(0, 135, 217, 0.4)",
-                          ],
-                        }
-                      : {}
-                  }
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  style={{
-                    filter: isActive && !isCompleted ? "drop-shadow(0 0 8px rgba(0, 135, 217, 0.6))" : "none",
-                  }}
-                >
-                  {/* Additional inner glow for extra effect */}
-                  {isActive && !isCompleted && (
-                    <motion.div
-                      className="absolute inset-0 rounded-full bg-[#0087d9]"
-                      animate={{
-                        opacity: [0.3, 0.6, 0.3],
-                        scale: [1, 1.1, 1],
-                      }}
-                      transition={{
-                        duration: 1.5,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      }}
-                    />
-                  )}
-                  <div className="relative z-10">
+              <motion.div
+                key={step.id}
+                className={`relative p-2 rounded-lg border transition-all duration-300 ${
+                  isCompleted
+                    ? "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700 shadow-sm"
+                    : isActive
+                      ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 shadow-md shadow-blue-500/20"
+                      : "bg-slate-50 dark:bg-slate-900/30 border-slate-200 dark:border-slate-600"
+                }`}
+                animate={
+                  isActive && !isCompleted
+                    ? {
+                        borderColor: ["#0087d9", "#60a5fa", "#0087d9"],
+                        boxShadow: [
+                          "0 0 0 0 rgba(0, 135, 217, 0.3)",
+                          "0 0 0 4px rgba(0, 135, 217, 0)",
+                        ],
+                      }
+                    : {}
+                }
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                {/* Circuit connection lines */}
+                {index < steps.length - 1 && (
+                  <div className="absolute -right-1 top-1/2 transform -translate-y-1/2 w-2 h-0.5 bg-[#0087d9]/30"></div>
+                )}
+                
+                <div className="flex items-center space-x-2">
+                  <div
+                    className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                      isCompleted
+                        ? "bg-green-500 text-white"
+                        : isActive
+                          ? "bg-[#0087d9] text-white"
+                          : "bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-400"
+                    }`}
+                  >
                     {isCompleted ? (
-                      <CheckCircle className="h-4 w-4" />
+                      <CheckCircle className="w-3 h-3" />
                     ) : isActive && step.id === "upload" && isUploading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="w-3 h-3 animate-spin" />
                     ) : (
-                      <Icon className="h-4 w-4" />
+                      <Icon className="w-3 h-3" />
                     )}
                   </div>
-                </motion.div>
-                <div className="flex-1">
-                  <div
-                    className={`text-sm font-medium ${
+                  <div className="min-w-0 flex-1">
+                    <div className={`text-xs font-medium truncate ${
                       isCompleted
                         ? "text-green-700 dark:text-green-400"
                         : isActive
                           ? "text-[#0087d9] dark:text-blue-400"
-                          : "text-gray-500 dark:text-gray-400"
-                    }`}
-                  >
-                    {step.name}
-                  </div>
-                  {/* Upload Progress Display */}
-                  {step.id === "upload" && isActive && isUploading && (
-                    <div className="mt-2 space-y-1">
-                      <div className="text-xs text-gray-500">
-                        Uploading... {uploadProgress}%
-                      </div>
-                      <Progress value={uploadProgress} className="h-2" />
+                          : "text-slate-600 dark:text-slate-400"
+                    }`}>
+                      {step.name}
                     </div>
-                  )}
+                    <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                      {step.detail}
+                    </div>
+                  </div>
+                </div>
 
-                  {/* Keyword Extraction Display */}
-                  {step.id === "upload" &&
-                    isActive &&
-                    (isUploading ||
-                      chatState.keywordExtractionStatus.isExtracting) && (
+                {/* Upload Progress Display */}
+                {step.id === "upload" && isActive && isUploading && (
+                  <div className="mt-2">
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">
+                      {uploadProgress}%
+                    </div>
+                    <Progress value={uploadProgress} className="h-1" />
+                  </div>
+                )}
+
+                {/* Keyword Extraction Display */}
+                {step.id === "upload" &&
+                  isActive &&
+                  (isUploading ||
+                    chatState.keywordExtractionStatus.isExtracting) && (
+                    <div className="mt-2">
                       <KeywordExtractionDisplay
                         keywords={
                           chatState.keywordExtractionStatus.discoveredKeywords
@@ -397,29 +550,21 @@ export function SidePanel({
                           chatState.keywordExtractionStatus.isExtracting
                         }
                       />
-                    )}
-
-                  {/* Upload Error Display */}
-                  {step.id === "upload" && uploadError && (
-                    <div className="mt-1 text-xs text-red-500 flex items-center space-x-1">
-                      <AlertCircle className="h-3 w-3" />
-                      <span>{uploadError}</span>
                     </div>
                   )}
-                  {/* General Progress Indicator */}
-                  {isActive &&
-                    chatState.isProcessing &&
-                    step.id !== "upload" && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        In Progress...
-                      </div>
-                    )}
-                </div>
-              </div>
+
+                {/* Upload Error Display */}
+                {step.id === "upload" && uploadError && (
+                  <div className="mt-1 text-xs text-red-500 flex items-center space-x-1">
+                    <AlertCircle className="w-3 h-3" />
+                    <span className="truncate">{uploadError}</span>
+                  </div>
+                )}
+              </motion.div>
             );
           })}
         </div>
-      </Card>
+      </CircuitCard>
     );
   };
 
@@ -427,25 +572,57 @@ export function SidePanel({
     if (!chatState.documentId) return null;
 
     return (
-      <Card className="p-4 mb-4 bg-white dark:bg-black border-gray-200 dark:border-white">
-        <h3 className="font-semibold mb-3 text-[#0087d9]">
-          Document Information
-        </h3>
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <FileText className="h-4 w-4 text-gray-500" />
-            <span className="text-sm font-medium">File:</span>
-            <span className="text-sm text-gray-600 dark:text-gray-300">
-              {chatState.fileName}
-            </span>
+      <CircuitCard 
+        title="Document Info" 
+        icon={Database} 
+        sectionKey="document"
+        variant="active"
+        className="mb-3"
+      >
+        <div className="space-y-3">
+          {/* File Information Grid */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="p-2 bg-slate-50 dark:bg-slate-900/50 rounded border border-slate-200 dark:border-slate-700">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Status</span>
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              </div>
+              <div className="text-xs text-green-600 dark:text-green-400 font-semibold">Active</div>
+            </div>
+            
+            <div className="p-2 bg-slate-50 dark:bg-slate-900/50 rounded border border-slate-200 dark:border-slate-700">
+              <div className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">ID</div>
+              <Badge variant="outline" className="text-xs font-mono h-5 px-1">
+                {chatState.documentId.slice(0, 6)}...
+              </Badge>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Badge className="border text-xs break-all">
-              ID: {chatState.documentId}
-            </Badge>
+
+          {/* Filename Display */}
+          <div className="p-2 bg-white dark:bg-black border border-slate-200 dark:border-slate-700 rounded">
+            <div className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Filename</div>
+            <div className="text-xs text-slate-900 dark:text-white font-mono bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded truncate">
+              {chatState.fileName}
+            </div>
+          </div>
+
+          {/* Processing Metrics */}
+          <div className="grid grid-cols-3 gap-1 text-center">
+            <div className="p-1.5 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-200 dark:border-blue-700">
+              <Monitor className="w-3 h-3 text-blue-500 mx-auto mb-1" />
+              <div className="text-xs text-blue-600 dark:text-blue-400 font-semibold">PDF</div>
+            </div>
+            <div className="p-1.5 bg-green-50 dark:bg-green-900/30 rounded border border-green-200 dark:border-green-700">
+              <CheckCircle className="w-3 h-3 text-green-500 mx-auto mb-1" />
+              <div className="text-xs text-green-600 dark:text-green-400 font-semibold">Parsed</div>
+            </div>
+            <div className="p-1.5 bg-amber-50 dark:bg-amber-900/30 rounded border border-amber-200 dark:border-amber-700">
+              <Cpu className="w-3 h-3 text-amber-500 mx-auto mb-1" />
+              <div className="text-xs text-amber-600 dark:text-amber-400 font-semibold">Ready</div>
+            </div>
           </div>
         </div>
-      </Card>
+      </CircuitCard>
     );
   };
 
@@ -458,191 +635,189 @@ export function SidePanel({
     if (!shouldShowMetadata) return null;
 
     return (
-      <Card className="p-4 mb-4 bg-white dark:bg-black border-gray-200 dark:border-white">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-[#0087d9]">Company Information</h3>
-          {!isEditingMetadata && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 px-3 hover:bg-gray-100 dark:hover:bg-gray-800"
-              onClick={() => setIsEditingMetadata(true)}
-              title="Edit company information"
-            >
-              <Edit3 className="h-4 w-4 mr-1" />
-              Edit
-            </Button>
-          )}
-        </div>
-
-        {isEditingMetadata ? (
-          <div className="space-y-3">
-            <div>
-              <Label htmlFor="company_name" className="text-sm font-medium">
-                Company Name
-              </Label>
-              <Input
-                id="company_name"
-                value={editedMetadata.company_name}
-                onChange={(e) =>
-                  setEditedMetadata((prev) => ({
-                    ...prev,
-                    company_name: e.target.value,
-                  }))
-                }
-                placeholder="Enter company name"
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label
-                htmlFor="nature_of_business"
-                className="text-sm font-medium"
+      <CircuitCard 
+        title="Company Info" 
+        icon={Building} 
+        sectionKey="metadata"
+        variant={chatState.currentStep?.id === "metadata" ? "processing" : "default"}
+        className="mb-3"
+      >
+        <div className="space-y-3">
+          {/* Header with edit button */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+              {isEditingMetadata ? "Editing Metadata" : "Company Details"}
+            </span>
+            {!isEditingMetadata && (
+              <CircuitButton
+                onClick={() => setIsEditingMetadata(true)}
+                variant="primary"
+                size="sm"
+                className="h-6 px-2"
               >
-                Nature of Business
-              </Label>
-              <Textarea
-                id="nature_of_business"
-                value={editedMetadata.nature_of_business}
-                onChange={(e) =>
-                  setEditedMetadata((prev) => ({
-                    ...prev,
-                    nature_of_business: e.target.value,
-                  }))
-                }
-                placeholder="Describe the nature of business"
-                className="mt-1"
-                rows={2}
-              />
-            </div>
-
-            <div>
-              <Label
-                htmlFor="operational_demographics"
-                className="text-sm font-medium"
-              >
-                Geography of Operations
-              </Label>
-              <Textarea
-                id="operational_demographics"
-                value={editedMetadata.operational_demographics}
-                onChange={(e) =>
-                  setEditedMetadata((prev) => ({
-                    ...prev,
-                    operational_demographics: e.target.value,
-                  }))
-                }
-                placeholder="Describe geographical operations"
-                className="mt-1"
-                rows={2}
-              />
-            </div>
-
-            <div>
-              <Label
-                htmlFor="financial_statements_type"
-                className="text-sm font-medium"
-              >
-                Nature of Statement
-              </Label>
-              <Input
-                id="financial_statements_type"
-                value={editedMetadata.financial_statements_type}
-                onChange={(e) =>
-                  setEditedMetadata((prev) => ({
-                    ...prev,
-                    financial_statements_type: e.target.value,
-                  }))
-                }
-                placeholder="Type of financial statement"
-                className="mt-1"
-              />
-            </div>
-
-            <div className="flex space-x-2 pt-2">
-              <Button
-                onClick={handleSaveMetadata}
-                className="h-8 px-2 bg-[#0087d9] hover:bg-blue-700"
-              >
-                <Save className="h-3 w-3 mr-1" />
-                Save
-              </Button>
-              <Button onClick={handleCancelEdit} className="border h-8 px-2">
-                <X className="h-3 w-3 mr-1" />
-                Cancel
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {!chatState.documentMetadata || Object.values(chatState.documentMetadata).every(val => !getMetadataValue(val)) ? (
-              <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                <p className="text-sm">No company information available yet.</p>
-                <p className="text-xs mt-1">Click &ldquo;Edit&rdquo; above to add company details manually.</p>
-              </div>
-            ) : (
-              <>
-                <div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Company Name:
-                  </span>
-                  <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                    {getMetadataValue(chatState.documentMetadata?.company_name) ||
-                      "Not available"}
-                  </div>
-                </div>
-
-                <div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Nature of Business:
-                  </span>
-                  <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                    {getMetadataValue(
-                      chatState.documentMetadata?.nature_of_business,
-                    ) || "Not available"}
-                  </div>
-                </div>
-
-                <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Geography of Operations:
-                  </span>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {getMetadataValue(
-                      chatState.documentMetadata?.operational_demographics,
-                    ) || "Not specified"}
-                  </div>
-                </div>
-
-                <div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Nature of Statement:
-                  </span>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {getMetadataValue(
-                      chatState.documentMetadata?.financial_statements_type,
-                    ) || "Not specified"}
-                  </div>
-                </div>
-
-                {/* Confirm button for metadata step */}
-                {chatState.currentStep?.id === "metadata" && onConfirmStep && (
-                  <div className="pt-3">
-                    <Button
-                      onClick={() => onConfirmStep("metadata")}
-                      className="h-8 px-2 bg-[#0087d9] hover:bg-blue-700 w-full"
-                    >
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Confirm & Proceed to Next Step
-                    </Button>
-                  </div>
-                )}
-              </>
+                <Edit3 className="w-3 h-3 mr-1" />
+                Edit
+              </CircuitButton>
             )}
           </div>
-        )}
-      </Card>
+
+          {isEditingMetadata ? (
+            <div className="space-y-2">
+              <div>
+                <Label htmlFor="company_name" className="text-xs font-medium">
+                  Company Name
+                </Label>
+                <Input
+                  id="company_name"
+                  value={editedMetadata.company_name}
+                  onChange={(e) =>
+                    setEditedMetadata((prev) => ({
+                      ...prev,
+                      company_name: e.target.value,
+                    }))
+                  }
+                  placeholder="Enter company name"
+                  className="mt-1 h-8 text-xs"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="nature_of_business" className="text-xs font-medium">
+                  Nature of Business
+                </Label>
+                <Textarea
+                  id="nature_of_business"
+                  value={editedMetadata.nature_of_business}
+                  onChange={(e) =>
+                    setEditedMetadata((prev) => ({
+                      ...prev,
+                      nature_of_business: e.target.value,
+                    }))
+                  }
+                  placeholder="Describe the nature of business"
+                  className="mt-1 text-xs"
+                  rows={2}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="operational_demographics" className="text-xs font-medium">
+                  Geography of Operations
+                </Label>
+                <Textarea
+                  id="operational_demographics"
+                  value={editedMetadata.operational_demographics}
+                  onChange={(e) =>
+                    setEditedMetadata((prev) => ({
+                      ...prev,
+                      operational_demographics: e.target.value,
+                    }))
+                  }
+                  placeholder="Describe geographical operations"
+                  className="mt-1 text-xs"
+                  rows={2}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="financial_statements_type" className="text-xs font-medium">
+                  Nature of Statement
+                </Label>
+                <Input
+                  id="financial_statements_type"
+                  value={editedMetadata.financial_statements_type}
+                  onChange={(e) =>
+                    setEditedMetadata((prev) => ({
+                      ...prev,
+                      financial_statements_type: e.target.value,
+                    }))
+                  }
+                  placeholder="Type of financial statement"
+                  className="mt-1 h-8 text-xs"
+                />
+              </div>
+
+              <div className="flex space-x-2 pt-2">
+                <CircuitButton
+                  onClick={handleSaveMetadata}
+                  variant="success"
+                  size="sm"
+                  className="flex-1"
+                >
+                  <Save className="w-3 h-3 mr-1" />
+                  Save
+                </CircuitButton>
+                <CircuitButton 
+                  onClick={handleCancelEdit} 
+                  variant="default" 
+                  size="sm"
+                  className="flex-1"
+                >
+                  <X className="w-3 h-3 mr-1" />
+                  Cancel
+                </CircuitButton>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {!chatState.documentMetadata || Object.values(chatState.documentMetadata).every(val => !getMetadataValue(val)) ? (
+                <div className="text-center py-3 text-slate-500 dark:text-slate-400">
+                  <Target className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-xs">No company information available yet.</p>
+                  <p className="text-xs mt-1 opacity-75">Click &ldquo;Edit&rdquo; above to add company details manually.</p>
+                </div>
+              ) : (
+                <div className="grid gap-2">
+                  <div className="p-2 bg-slate-50 dark:bg-slate-900/50 rounded border border-slate-200 dark:border-slate-700">
+                    <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Company</div>
+                    <div className="text-xs text-slate-900 dark:text-white mt-1 truncate">
+                      {getMetadataValue(chatState.documentMetadata?.company_name) || "Not available"}
+                    </div>
+                  </div>
+
+                  <div className="p-2 bg-slate-50 dark:bg-slate-900/50 rounded border border-slate-200 dark:border-slate-700">
+                    <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Business</div>
+                    <div className="text-xs text-slate-900 dark:text-white mt-1 line-clamp-2">
+                      {getMetadataValue(chatState.documentMetadata?.nature_of_business) || "Not available"}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-2 bg-slate-50 dark:bg-slate-900/50 rounded border border-slate-200 dark:border-slate-700">
+                      <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Geography</div>
+                      <div className="text-xs text-slate-900 dark:text-white mt-1 truncate">
+                        {getMetadataValue(chatState.documentMetadata?.operational_demographics) || "Not specified"}
+                      </div>
+                    </div>
+
+                    <div className="p-2 bg-slate-50 dark:bg-slate-900/50 rounded border border-slate-200 dark:border-slate-700">
+                      <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Statement</div>
+                      <div className="text-xs text-slate-900 dark:text-white mt-1 truncate">
+                        {getMetadataValue(chatState.documentMetadata?.financial_statements_type) || "Not specified"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Confirm button for metadata step */}
+                  {chatState.currentStep?.id === "metadata" && onConfirmStep && (
+                    <div className="pt-2">
+                      <CircuitButton
+                        onClick={() => onConfirmStep("metadata")}
+                        variant="primary"
+                        size="default"
+                        className="w-full"
+                      >
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Confirm & Proceed
+                      </CircuitButton>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </CircuitCard>
     );
   };
 
@@ -710,16 +885,44 @@ export function SidePanel({
     const progressData = chatState.currentProgress as ProgressData | undefined;
 
     return (
-      <Card className="p-4 mb-4 bg-white dark:bg-black border-gray-200 dark:border-white">
-        <h3 className="font-semibold mb-3 text-[#0087d9]">Analysis Progress</h3>
+      <Card className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700 shadow-lg">
+        <h3 className="font-semibold mb-4 text-[#0087d9] flex items-center space-x-2">
+          <BarChart3 className="w-4 h-4" />
+          <span>Analysis Progress</span>
+          <motion.div
+            className="w-2 h-2 bg-green-400 rounded-full"
+            animate={{
+              scale: [1, 1.3, 1],
+              opacity: [0.7, 1, 0.7],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        </h3>
 
         {progressData && (
-          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium">Overall Progress</span>
-              <span className="text-sm text-blue-600 dark:text-blue-400">
-                {progressData.overall_progress?.elapsed_time_formatted || "0s"}
-              </span>
+          <div className="mb-4 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Overall Progress</span>
+              <div className="flex items-center space-x-2">
+                <motion.div
+                  className="w-2 h-2 bg-blue-400 rounded-full"
+                  animate={{
+                    opacity: [0.3, 1, 0.3],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                />
+                <span className="text-sm text-blue-600 dark:text-blue-400 font-mono">
+                  {progressData.overall_progress?.elapsed_time_formatted || "0s"}
+                </span>
+              </div>
             </div>
             <Progress
               value={
@@ -727,18 +930,26 @@ export function SidePanel({
                 progressData.percentage ||
                 0
               }
-              className="h-2 mb-2"
+              className="h-3 mb-3"
             />
-            <div className="text-xs text-gray-600 dark:text-gray-400">
-              {progressData.questions?.completed || 0} /{" "}
-              {progressData.questions?.total || 0} questions answered
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-gray-600 dark:text-gray-400">
+                {progressData.questions?.completed || 0} / {progressData.questions?.total || 0} questions answered
+              </span>
+              <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                {Math.round(progressData.overall_progress?.percentage || progressData.percentage || 0)}%
+              </span>
             </div>
             {(progressData.overall_progress?.current_standard ||
               progressData.currentStandard) && (
-              <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                Currently processing:{" "}
-                {progressData.overall_progress?.current_standard ||
-                  progressData.currentStandard}
+              <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                <div className="text-xs text-blue-700 dark:text-blue-300 font-medium">
+                  Currently processing:
+                </div>
+                <div className="text-sm text-blue-900 dark:text-blue-100 font-semibold truncate">
+                  {progressData.overall_progress?.current_standard ||
+                    progressData.currentStandard}
+                </div>
               </div>
             )}
           </div>
