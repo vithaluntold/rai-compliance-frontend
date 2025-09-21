@@ -1067,6 +1067,15 @@ toast({
 
   const handleFileUpload = async (file: File, uploadResponse?: unknown): Promise<void> => {
     const response = uploadResponse as Record<string, unknown> | undefined;
+    
+    // 🔍 DEBUG: Log what we're receiving
+    console.log('🔍 handleFileUpload called with:', {
+      fileName: file.name,
+      hasUploadResponse: !!uploadResponse,
+      uploadResponse: uploadResponse,
+      documentId: response?.['document_id']
+    });
+    
     try {
       // Track the file upload API call
       trackApiCall('documents.upload');
