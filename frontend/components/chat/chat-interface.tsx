@@ -1115,10 +1115,20 @@ toast({
 
         // Create session if we don't have one
         if (!currentSession) {
-          await createNewSession(file.name, documentId);
+          try {
+            await createNewSession(file.name, documentId);
+          } catch (error) {
+            console.log('⚠️ Session creation failed, continuing without session:', error);
+            // Don't block upload flow if session creation fails
+          }
         } else {
           // Update existing session title to match new file
-          await updateSessionWithFileName(file.name, documentId);
+          try {
+            await updateSessionWithFileName(file.name, documentId);
+          } catch (error) {
+            console.log('⚠️ Session update failed, continuing:', error);
+            // Don't block upload flow if session update fails
+          }
         }
 
         // Add success message
@@ -1242,10 +1252,20 @@ toast({
 
       // Create session if we don't have one
       if (!currentSession) {
-        await createNewSession(file.name);
+        try {
+          await createNewSession(file.name);
+        } catch (error) {
+          console.log('⚠️ Session creation failed, continuing without session:', error);
+          // Don't block upload flow if session creation fails
+        }
       } else {
         // Update existing session title to match new file
-        await updateSessionWithFileName(file.name);
+        try {
+          await updateSessionWithFileName(file.name);
+        } catch (error) {
+          console.log('⚠️ Session update failed, continuing:', error);
+          // Don't block upload flow if session update fails
+        }
       }
 
       // Check if we already have a document ID - if so, don't restart the process
@@ -1431,7 +1451,12 @@ toast({
 
         // Update session title with document ID now that we have it
         if (currentSession) {
-          await updateSessionWithFileName(pendingFile.name, response['document_id']);
+          try {
+            await updateSessionWithFileName(pendingFile.name, response['document_id']);
+          } catch (error) {
+            console.log('⚠️ Session update failed, continuing:', error);
+            // Don't block upload flow if session update fails
+          }
         }
 
         // Update loading message to success
