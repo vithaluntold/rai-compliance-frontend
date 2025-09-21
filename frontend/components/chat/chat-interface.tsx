@@ -518,10 +518,42 @@ export function ChatInterface(): React.JSX.Element {
                   currentStep: chatSteps.find(s => s.id === 'results') || prev.currentStep,
                 }));
 
-                // Add a message about loaded results
+                // Add enhanced smart categorization results message
+                const getSmartCategorizationSummary = (results: unknown) => {
+                  interface CategorizationSummary {
+                    total_content_pieces?: number;
+                    avg_confidence?: number;
+                    category_distribution?: Record<string, number>;
+                  }
+                  interface ResultsWithCategorization {
+                    categorization_summary?: CategorizationSummary;
+                  }
+                  
+                  if (results && typeof results === 'object' && 'categorization_summary' in results) {
+                    const typedResults = results as ResultsWithCategorization;
+                    const catSum = typedResults.categorization_summary;
+                    const catDist = catSum?.category_distribution || {};
+                    const categories = Object.keys(catDist);
+                    const totalPieces = catSum?.total_content_pieces || 0;
+                    const avgConfidence = catSum?.avg_confidence || 0;
+                    
+                    let distText = "";
+                    if (categories.length > 0) {
+                      const topCategories = categories
+                        .map(cat => `${cat}: ${catDist[cat]} pieces`)
+                        .slice(0, 3)
+                        .join(", ");
+                      distText = `\n● **Category Distribution:** ${topCategories}${categories.length > 3 ? ` (and ${categories.length - 3} more)` : ""}`;
+                    }
+                    
+                    return `\n\n**🧠 Smart Categorization Summary:**\n● **Total Content Pieces:** ${totalPieces}\n● **AI Confidence:** ${(avgConfidence * 100).toFixed(1)}%${distText}`;
+                  }
+                  return "";
+                };
+
                 setMessages(prev => [...prev, {
                   id: generateUniqueId(),
-                  content: `📊 Analysis results loaded! You can review the compliance report or download the findings.`,
+                  content: `📊 **Smart Categorization Analysis Complete!**\n\nYour document has been successfully processed using advanced AI categorization technology. You can review the detailed compliance report or download the comprehensive findings.${getSmartCategorizationSummary(analysisResults)}`,
                   timestamp: new Date(),
                   type: "system",
                   metadata: { analysisResults: analysisResults }
@@ -533,7 +565,7 @@ export function ChatInterface(): React.JSX.Element {
 // Still show that document is completed even if results fail
                 setMessages(prev => [...prev, {
                   id: generateUniqueId(),
-                  content: `⚠ Analysis was completed, but results could not be loaded. You may need to re-run the analysis.`,
+                  content: `⚠ Smart categorization analysis was completed, but results could not be loaded. You may need to re-run the analysis.`,
                   timestamp: new Date(),
                   type: "system",
                 }]);
@@ -542,7 +574,7 @@ export function ChatInterface(): React.JSX.Element {
               // If still processing, show status and start polling
               setMessages(prev => [...prev, {
                 id: generateUniqueId(),
-                content: `🔄 Analysis is still in progress. Continuing from where we left off...`,
+                content: `🔄 Smart categorization analysis is still in progress. Continuing from where we left off...`,
                 timestamp: new Date(),
                 type: "system",
               }]);
@@ -683,7 +715,7 @@ toast({
       setMessages([
         {
           id: generateUniqueId(),
-          content: "Welcome to RAi Compliance Engine! I'll help you analyze your financial statements for compliance with accounting standards. Let's start by uploading your document.",
+          content: "Welcome to RAi Compliance Engine! I'll help you analyze your financial statements using our advanced smart categorization technology for precise compliance analysis. Let's start by uploading your document for intelligent processing.",
           timestamp: new Date(),
           type: "system",
         },
@@ -853,6 +885,57 @@ toast({
           isProcessing: progressData.status === "PROCESSING",
         }));
 
+        // Add enhanced step-by-step progress messages for smart categorization workflow
+        const addSmartWorkflowMessage = (percentage: number) => {
+          let stepMessage = "";
+          let stepIcon = "";
+          let stepTitle = "";
+          
+          if (percentage <= 15) {
+            stepIcon = "🚀";
+            stepTitle = "Step 1: Processing Lock & File Discovery";
+            stepMessage = "🔍 Initializing smart processing workflow - Creating processing lock and discovering uploaded files";
+          } else if (percentage <= 30) {
+            stepIcon = "🔍";
+            stepTitle = "Step 2: Document Analysis";
+            stepMessage = "📄 Advanced document parsing and content extraction - Preparing for intelligent categorization";
+          } else if (percentage <= 50) {
+            stepIcon = "🧠";
+            stepTitle = "Step 3: Smart Categorization";
+            stepMessage = "🎯 AI-powered intelligent categorization in progress - Analyzing content structure and financial statement types";
+          } else if (percentage <= 65) {
+            stepIcon = "💾";
+            stepTitle = "Step 4: Metadata Compilation";
+            stepMessage = "📊 Saving categorization metadata and structured analysis results";
+          } else if (percentage <= 80) {
+            stepIcon = "📋";
+            stepTitle = "Step 5: Smart Checklist Analysis";
+            stepMessage = "✅ Intelligent compliance framework analysis - Processing categorized content against standards";
+          } else if (percentage <= 95) {
+            stepIcon = "💾";
+            stepTitle = "Step 6: Results Compilation";
+            stepMessage = "📈 Compiling comprehensive analysis results and compliance findings";
+          } else {
+            stepIcon = "🔒";
+            stepTitle = "Step 7: Completion & Lock Files";
+            stepMessage = "🎉 Finalizing smart categorization workflow - Creating completion locks and preparing results";
+          }
+
+          // Only add message if we've moved to a new step (to avoid spam)
+          const lastMessage = messages[messages.length - 1];
+          if (!lastMessage || typeof lastMessage.content !== 'string' || !lastMessage.content.includes(stepTitle)) {
+            addMessage(
+              `${stepIcon} **${stepTitle}**\n\n${stepMessage}\n\n*Smart categorization: ${percentage.toFixed(1)}% complete*`,
+              "system"
+            );
+          }
+        };
+
+        // Add smart workflow messages based on progress
+        if (progressData.percentage !== undefined) {
+          addSmartWorkflowMessage(progressData.percentage);
+        }
+
         // If analysis is completed, stop polling and check for results
         if (progressData.status === "COMPLETED") {
           clearInterval(progressInterval!);
@@ -866,7 +949,7 @@ toast({
           clearInterval(progressInterval!);
           setChatState((prev) => ({ ...prev, isProcessing: false }));
           addMessage(
-            "⚠ **Analysis Failed**\n\n● **Error:** Backend processing encountered a critical error\n● **Status:** Unable to complete compliance analysis\n● **Troubleshooting:**\n• Check document format and quality\n• Ensure document contains financial statements\n• Try re-uploading the document\n• Contact support if issue persists\n\n*Please try again with a different document or reach out for assistance.*",
+            "⚠ **Smart Categorization Analysis Failed**\n\n● **Error:** Advanced AI processing encountered a critical error\n● **Status:** Unable to complete smart categorization workflow\n● **Troubleshooting:**\n• Check document format and quality\n• Ensure document contains financial statements\n• Try re-uploading the document\n• Contact support if issue persists\n\n*Please try again with a different document or reach out for assistance.*",
             "system",
           );
         }
@@ -1075,7 +1158,7 @@ toast({
       setMessages([
         {
           id: generateUniqueId(),
-          content: "Welcome to RAi Compliance Engine! I'll help you analyze your financial statements for compliance with accounting standards. Let's start by uploading your document.",
+          content: "Welcome to RAi Compliance Engine! I'll help you analyze your financial statements using our advanced smart categorization technology for precise compliance analysis. Let's start by uploading your document for intelligent processing.",
           timestamp: new Date(),
           type: "system",
         },
@@ -1147,7 +1230,7 @@ toast({
 
         // Add success message
         addMessage(
-          `Document uploaded successfully! Document ID: ${documentId}. Starting metadata extraction...`,
+          `Document uploaded successfully! Document ID: ${documentId}. Starting smart categorization and enhanced metadata extraction...`,
           "system",
           { fileId: documentId, fileName: file.name }
         );
@@ -1159,8 +1242,8 @@ toast({
         trackApiCall('metadata.extraction.start');
         addLog(
           'info',
-          'Metadata',
-          `Starting metadata extraction for document: ${documentId}`,
+          'SmartProcessing',
+          `Starting smart categorization and metadata extraction for document: ${documentId}`,
           { documentId }
         );
 
@@ -1168,8 +1251,8 @@ toast({
         try {
           addLog(
             'info',
-            'Metadata',
-            `Attempting to trigger backend metadata extraction`,
+            'SmartProcessing',
+            `Attempting to trigger smart categorization and metadata extraction`,
             { documentId, endpoint: 'main analysis endpoint' }
           );
           
@@ -1177,8 +1260,8 @@ toast({
           
           addLog(
             'success',
-            'Metadata',
-            `Backend analysis triggered successfully - AI processing started`,
+            'SmartProcessing',
+            `Smart categorization and analysis triggered successfully - AI processing started`,
             { 
               documentId, 
               hasMetadata: !!analysisResponse.metadata,
@@ -1320,7 +1403,7 @@ toast({
         
         if (statusResponse.status === "COMPLETED") {
           // Analysis is already complete, fetch full results and go directly to results
-          addMessage("Analysis already completed! Loading results...", "system");
+          addMessage("Smart categorization analysis already completed! Loading results...", "system");
           
           try {
             // Fetch the full results instead of using progress data
@@ -1340,7 +1423,7 @@ toast({
             const completionMessage: Message = {
               id: generateUniqueId(),
               type: "system",
-              content: "**Analysis Complete!**\n\nYour compliance analysis has been successfully completed. You can now review the detailed results, including compliance scores, identified issues, and recommendations.",
+              content: "**Smart Categorization Analysis Complete!**\n\nYour compliance analysis has been successfully completed using advanced AI categorization technology. You can now review the detailed results, including compliance scores, identified issues, and intelligent categorization insights.",
               timestamp: new Date(),
               showResultsButton: true,
               documentId: documentId,
@@ -1358,12 +1441,12 @@ toast({
               analysisResults: statusResponse,
             }));
             
-            addMessage("Analysis completed! Click the button below to view results.", "system");
+            addMessage("Smart categorization analysis completed! Click the button below to view results.", "system");
             
             const completionMessage: Message = {
               id: generateUniqueId(),
               type: "system",
-              content: "🎉 **Analysis Complete!**\n\nYour compliance analysis has been successfully completed. You can now review the detailed results, including compliance scores, identified issues, and recommendations.",
+              content: "🎉 **Smart Categorization Analysis Complete!**\n\nYour compliance analysis has been successfully completed using advanced AI categorization technology. You can now review the detailed results, including compliance scores, identified issues, and intelligent categorization insights.",
               timestamp: new Date(),
               showResultsButton: true,
               documentId: documentId,
@@ -1475,7 +1558,7 @@ toast({
 
         // Update loading message to success
         updateLastMessage(
-          `Document uploaded successfully! Document ID: ${response['document_id']}. Starting metadata extraction...`,
+          `Document uploaded successfully! Document ID: ${response['document_id']}. Starting smart categorization and enhanced metadata extraction...`,
           { fileId: response['document_id'], fileName: pendingFile.name },
         );
 
@@ -1523,7 +1606,7 @@ toast({
       setIsUploading(false);
       
       addMessage(
-        "Metadata extraction is taking longer than expected. You can manually enter the company details in the side panel.",
+        "Smart categorization and metadata extraction is taking longer than expected. You can manually enter the company details in the side panel.",
         "system",
       );
       
@@ -1751,7 +1834,7 @@ You can review and edit these details in the side panel before proceeding to fra
           }));
 
           addMessage(
-            `Framework automatically selected: ${statusResponse.framework.toUpperCase()}. Starting compliance analysis...`,
+            `Framework automatically selected: ${statusResponse.framework.toUpperCase()}. Starting intelligent categorization analysis...`,
             "system",
           );
 
@@ -1923,13 +2006,13 @@ You can review and edit these details in the side panel before proceeding to fra
 
       // Add success message
       addMessage(
-        `Perfect! I'll analyze your document against ${framework} with ${Array.isArray(standards) ? standards.length : 0} selected standards: ${Array.isArray(standards) ? standards.join(", ") : "none"}. This will check approximately ${Array.isArray(standards) ? standards.length * 50 : 0}+ compliance requirements.`,
+        `Perfect! I'll perform intelligent categorization analysis of your document against ${framework} with ${Array.isArray(standards) ? standards.length : 0} selected standards: ${Array.isArray(standards) ? standards.join(", ") : "none"}. This will check approximately ${Array.isArray(standards) ? standards.length * 50 : 0}+ compliance requirements using advanced smart categorization.`,
         "system",
       );
 
       // Start smart mode analysis directly
       addMessage(
-        "Perfect! Starting smart mode analysis with your selected framework and standards.",
+        "Perfect! Starting intelligent categorization analysis with your selected framework and standards.",
         "system",
       );
 
@@ -2160,7 +2243,7 @@ You can review and edit these details in the side panel before proceeding to fra
       );
     } else if (newSelectedStandards.length >= 5) {
       addMessage(
-        `You've selected ${newSelectedStandards.length} standards. This comprehensive analysis will check ${newSelectedStandards.length * 50}+ compliance requirements and may take 10-15 minutes to complete.`,
+        `You've selected ${newSelectedStandards.length} standards. This smart categorization analysis will check ${newSelectedStandards.length * 50}+ compliance requirements and may take 10-15 minutes to complete.`,
         "system",
       );
     }
@@ -2174,7 +2257,7 @@ You can review and edit these details in the side panel before proceeding to fra
     setSelectedStandards(selectAllStandards(availableStandards));
 
     addMessage(
-      `All ${availableStandards.length} standards selected! This will perform a complete compliance analysis covering ${availableStandards.length * 50}+ requirements. This comprehensive check will take approximately 15-20 minutes.`,
+      `All ${availableStandards.length} standards selected! This will perform a complete smart categorization analysis covering ${availableStandards.length * 50}+ requirements. This comprehensive intelligent analysis will take approximately 15-20 minutes.`,
       "system",
     );
   };
@@ -2225,13 +2308,13 @@ You can review and edit these details in the side panel before proceeding to fra
 
         // Add success message
         addMessage(
-          `**Framework Configuration Complete!**\n\n● **Selected Framework:** ${selectedFramework}\n● **Active Standards:** ${Array.isArray(selectedStandards) ? selectedStandards.length : 0} standards selected\n● **Compliance Scope:** ${Array.isArray(selectedStandards) ? selectedStandards.join(", ") : "none"}\n● **Analysis Scope:** Approximately ${Array.isArray(selectedStandards) ? selectedStandards.length * 50 : 0}+ compliance requirements\n\n**Ready to proceed with compliance analysis!**`,
+          `**Framework Configuration Complete!**\n\n● **Selected Framework:** ${selectedFramework}\n● **Active Standards:** ${Array.isArray(selectedStandards) ? selectedStandards.length : 0} standards selected\n● **Compliance Scope:** ${Array.isArray(selectedStandards) ? selectedStandards.join(", ") : "none"}\n● **Analysis Scope:** Approximately ${Array.isArray(selectedStandards) ? selectedStandards.length * 50 : 0}+ compliance requirements\n\n**Ready to proceed with intelligent categorization analysis!**`,
           "system",
         );
 
         // Start smart mode analysis directly
         addMessage(
-          "Perfect! Starting smart mode analysis with your selected framework and standards.",
+          "Perfect! Starting intelligent categorization analysis with your selected framework and standards.",
           "system",
         );
 
@@ -2301,20 +2384,14 @@ You can review and edit these details in the side panel before proceeding to fra
 
   // Handle navigation to results page
   const handleGoToResults = (documentId: string) => {
-    console.log('DEBUG: handleGoToResults called with documentId:', documentId);
-    
     if (!documentId) {
-      console.log('DEBUG: No documentId, showing alert');
       alert('Error: No document ID available. Please try refreshing the page.');
       return;
     }
     
-    console.log('DEBUG: Attempting to navigate to:', `/results/${documentId}`);
     try {
       router.push(`/results/${documentId}`);
-      console.log('DEBUG: Navigation triggered successfully');
-    } catch (error) {
-      console.log('DEBUG: Navigation error:', error);
+    } catch {
       alert('Error navigating to results page. Please try again.');
     }
   };
@@ -2357,7 +2434,7 @@ You can review and edit these details in the side panel before proceeding to fra
       addMessage(enhancedMessage, "system");
 
       addMessage(
-        `🔍 Analyzing ${selectedStandards.length} standards with ${selectedStandards.length * 50}+ compliance requirements using enhanced extraction.`,
+        `🔍 Analyzing ${selectedStandards.length} standards with ${selectedStandards.length * 50}+ compliance requirements using smart categorization.`,
         "system",
       );
 
@@ -2396,12 +2473,12 @@ You can review and edit these details in the side panel before proceeding to fra
         errorMessage += `: ${errorObj.message}`;
       }
 
-      const detailedErrorMessage = `❌ **Compliance Analysis Failed to Start**\n\n🚨 **Error Details:** ${errorMessage}\n📋 **Backend Status:** Service encountered processing error\n🔧 **Troubleshooting:**\n• Document may not be fully processed\n• Framework selection might be invalid\n• Backend services may be temporarily unavailable\n🔄 **Next Steps:** Please try again or contact support\n\n*Analysis initialization could not be completed successfully.*`;
+      const detailedErrorMessage = `❌ **Smart Categorization Analysis Failed to Start**\n\n🚨 **Error Details:** ${errorMessage}\n📋 **Backend Status:** Smart categorization service encountered processing error\n🔧 **Troubleshooting:**\n• Document may not be fully processed by smart categorization workflow\n• Framework selection might be invalid\n• AI categorization services may be temporarily unavailable\n🔄 **Next Steps:** Please try again or contact support\n\n*Smart categorization analysis initialization could not be completed successfully.*`;
 
       addMessage(detailedErrorMessage, "system");
 
       toast({
-        title: "Analysis Error",
+        title: "Smart Categorization Analysis Error",
         description: errorMessage,
         variant: "destructive",
       });
@@ -2484,12 +2561,12 @@ You can review and edit these details in the side panel before proceeding to fra
               id: generateUniqueId(),
               type: "system",
               content:
-                `✅ **Compliance Analysis Complete!**
+                `✅ **Smart Categorization Analysis Complete!**
 
 • **Analysis Summary:**
 • **Standards Processed:** ${fullResults.sections?.length || 'Multiple'} compliance sections
 • **Items Evaluated:** ${Array.isArray(fullResults.sections) ? fullResults.sections.reduce((total, section) => total + (Array.isArray(section.items) ? section.items.length : 0), 0) : 'All'} compliance requirements
-• **Processing Time:** Backend analysis completed
+• **Processing Time:** Smart categorization workflow completed
 
 • **Results Available:**
 • Detailed compliance checklist
@@ -2538,7 +2615,7 @@ You can review and edit these details in the side panel before proceeding to fra
             }));
 
             addMessage(
-              "✅ Analysis completed! Click the button below to view detailed results.",
+              "✅ Smart categorization analysis completed! Click the button below to view detailed results.",
               "system"
             );
 
@@ -2546,7 +2623,7 @@ You can review and edit these details in the side panel before proceeding to fra
               id: generateUniqueId(),
               type: "system",
               content:
-                "🎉 **Analysis Complete!**\n\nYour compliance analysis has been successfully completed. You can now review the detailed results, including compliance scores, identified issues, and recommendations.",
+                "🎉 **Smart Categorization Analysis Complete!**\n\nYour compliance analysis has been successfully completed using advanced AI categorization technology. You can now review the detailed results, including compliance scores, identified issues, and intelligent categorization insights.",
               timestamp: new Date(),
               showResultsButton: true,
               documentId: chatState.documentId,

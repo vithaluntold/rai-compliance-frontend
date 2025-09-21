@@ -27,7 +27,7 @@ export const CheckIcon: React.FC<IconProps> = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-export const XMarkIcon: React.FC<IconProps> = ({ className = "w-4 h-4" }) => (
+export const XMarkIcon: React.FC<IconProps> = ({ className = "w-4 h-4 inline-block align-text-bottom" }) => (
   <svg 
     className={className} 
     viewBox="0 0 24 24" 
@@ -50,7 +50,7 @@ export const XMarkIcon: React.FC<IconProps> = ({ className = "w-4 h-4" }) => (
   </svg>
 );
 
-export const LightningIcon: React.FC<IconProps> = ({ className = "w-4 h-4" }) => (
+export const LightningIcon: React.FC<IconProps> = ({ className = "w-4 h-4 inline-block align-text-bottom" }) => (
   <svg 
     className={className} 
     viewBox="0 0 24 24" 
@@ -70,7 +70,7 @@ export const LightningIcon: React.FC<IconProps> = ({ className = "w-4 h-4" }) =>
   </svg>
 );
 
-export const RobotIcon: React.FC<IconProps> = ({ className = "w-4 h-4" }) => (
+export const RobotIcon: React.FC<IconProps> = ({ className = "w-4 h-4 inline-block align-text-bottom" }) => (
   <svg 
     className={className} 
     viewBox="0 0 24 24" 
@@ -106,7 +106,7 @@ export const RobotIcon: React.FC<IconProps> = ({ className = "w-4 h-4" }) => (
   </svg>
 );
 
-export const ChartIcon: React.FC<IconProps> = ({ className = "w-4 h-4" }) => (
+export const ChartIcon: React.FC<IconProps> = ({ className = "w-4 h-4 inline-block align-text-bottom" }) => (
   <svg 
     className={className} 
     viewBox="0 0 24 24" 
@@ -136,7 +136,7 @@ export const ChartIcon: React.FC<IconProps> = ({ className = "w-4 h-4" }) => (
   </svg>
 );
 
-export const SearchIcon: React.FC<IconProps> = ({ className = "w-4 h-4" }) => (
+export const SearchIcon: React.FC<IconProps> = ({ className = "w-4 h-4 inline-block align-text-bottom" }) => (
   <svg 
     className={className} 
     viewBox="0 0 24 24" 
@@ -214,7 +214,7 @@ export const StarIcon: React.FC<IconProps> = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-export const DocumentIcon: React.FC<IconProps> = ({ className = "w-4 h-4" }) => (
+export const DocumentIcon: React.FC<IconProps> = ({ className = "w-4 h-4 inline-block align-text-bottom" }) => (
   <svg 
     className={className} 
     viewBox="0 0 24 24" 
