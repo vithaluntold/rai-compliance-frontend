@@ -22,7 +22,7 @@ export async function GET(
       );
     }
 
-    const response = await fetch(`${backendUrl}/api/v1/analysis/documents/${documentId}/extract`);
+    const response = await fetch(`${backendUrl}/api/v1/analysis/documents/${documentId}/results`);
 
     if (!response.ok) {
       throw new Error(`Error fetching extracted data: ${response.statusText}`);
