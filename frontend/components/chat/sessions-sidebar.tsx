@@ -17,7 +17,8 @@ import {
   Archive,
   Edit,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ExternalLink
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -233,17 +234,17 @@ toast({
               className="fixed left-0 top-0 h-full w-[26rem] bg-white dark:bg-black sidebar-panel border-r border-gray-200 dark:border-white z-50 flex flex-col shadow-lg"
             >
               {/* Header */}
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-[#0087d9]">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Analysis Sessions</h2>
-                  <Button className="bg-transparent h-8 px-2 dark:text-white" onClick={onToggle}>
+                  <h2 className="text-lg font-semibold text-white">Sessions</h2>
+                  <Button className="bg-transparent h-8 px-2 text-white hover:bg-white/10" onClick={onToggle}>
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                 </div>
                 
                 <Button 
                   onClick={handleCreateSession}
-                  className="w-full bg-[#0087d9] hover:bg-blue-700 text-white h-8 px-2"
+                  className="w-full bg-white hover:bg-gray-100 text-[#0087d9] h-8 px-2 font-semibold"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   New Session
@@ -354,6 +355,17 @@ toast({
                                   >
                                     <Archive className="h-4 w-4 mr-2" />
                                     Archive
+                                  </DropdownMenuItem>
+                                )}
+                                {session.last_document_id && (
+                                  <DropdownMenuItem
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      window.open(`/results/${session.last_document_id}`, '_blank');
+                                    }}
+                                  >
+                                    <ExternalLink className="h-4 w-4 mr-2" />
+                                    View Results
                                   </DropdownMenuItem>
                                 )}
                                 <DropdownMenuItem

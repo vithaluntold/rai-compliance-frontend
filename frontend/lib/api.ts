@@ -100,4 +100,61 @@ export const api = {
       return response.data;
     },
   },
+
+  sessions: {
+    // Create a new session
+    async create(data: { title?: string; description?: string }) {
+      const response = await axios.post(
+        `${API_BASE_URL}/api/v1/sessions/create`,
+        data,
+      );
+      return response.data;
+    },
+
+    // Get list of sessions
+    async list(limit: number = 50, offset: number = 0) {
+      const response = await axios.get(
+        `${API_BASE_URL}/api/v1/sessions/list?limit=${limit}&offset=${offset}`,
+      );
+      return response.data;
+    },
+
+    // Get a specific session by ID
+    async get(sessionId: string) {
+      const response = await axios.get(
+        `${API_BASE_URL}/api/v1/sessions/${sessionId}`,
+      );
+      return response.data;
+    },
+
+    // Update a session
+    async update(sessionId: string, data: { 
+      title?: string; 
+      description?: string; 
+      chat_state?: unknown; 
+      messages?: unknown[] 
+    }) {
+      const response = await axios.put(
+        `${API_BASE_URL}/api/v1/sessions/${sessionId}`,
+        data,
+      );
+      return response.data;
+    },
+
+    // Delete a session
+    async delete(sessionId: string) {
+      const response = await axios.delete(
+        `${API_BASE_URL}/api/v1/sessions/${sessionId}`,
+      );
+      return response.data;
+    },
+
+    // Archive a session
+    async archive(sessionId: string) {
+      const response = await axios.post(
+        `${API_BASE_URL}/api/v1/sessions/${sessionId}/archive`,
+      );
+      return response.data;
+    },
+  },
 };

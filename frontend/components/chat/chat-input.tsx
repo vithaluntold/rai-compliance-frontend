@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   Upload,
   Send,
-  FileText,
   Loader2,
   CheckCircle,
   AlertCircle,
@@ -16,6 +15,7 @@ import {
   WifiOff,
   RefreshCw,
 } from "lucide-react";
+import {DocumentIcon} from "@/components/ui/professional-icons";
 import { useToast } from "@/components/ui/use-toast";
 import { validateFile } from "@/lib/file-validation";
 import { safeApiCall, NetworkMonitor } from "@/lib/error-handling";
@@ -842,7 +842,7 @@ export function ChatInput({
                     }
                     transition={{ repeat: Infinity, duration: 2 }}
                   >
-                    <Send className="h-5 w-5" />
+                    <Send className="h-4 w-4" />
                   </motion.div>
                 </Button>
               </motion.div>
@@ -861,7 +861,7 @@ export function ChatInput({
               animate={{ rotate: [0, 5, -5, 0] }}
               transition={{ repeat: Infinity, duration: 3 }}
             >
-              <FileText className="h-5 w-5 text-blue-600" />
+              <DocumentIcon className="h-4 w-4" />
             </motion.div>
             <span className="text-slate-700 font-medium">Document: </span>
             <span className="text-blue-600 font-semibold">

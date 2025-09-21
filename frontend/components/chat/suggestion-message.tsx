@@ -1,7 +1,7 @@
 "use client";
 
 import {Button} from "@/components/ui/button";
-import {Lightbulb} from "lucide-react";
+import {LightningIcon} from "@/components/ui/professional-icons";
 import { Card } from "@/components/ui/card";
 interface SuggestionMessageProps {
   suggestions: string[];
@@ -15,7 +15,7 @@ export function SuggestionMessage({
   return (
     <div className="space-y-3">
       <div className="flex items-center space-x-2 mb-4">
-        <Lightbulb className="h-4 w-4 text-yellow-600" />
+        <LightningIcon className="h-4 w-4" />
         <span className="text-sm font-medium text-gray-700">
           Suggestions for Enhanced Analysis
         </span>

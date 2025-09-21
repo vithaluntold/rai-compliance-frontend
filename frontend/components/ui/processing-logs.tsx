@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Terminal, Copy, Download } from 'lucide-react';
+import { CheckIcon, XMarkIcon, WarningIcon } from '@/components/ui/professional-icons';
 import { cn } from '@/lib/utils';
 
 interface LogEntry {
@@ -78,9 +79,9 @@ export function ProcessingLogs({
 
   const getLevelSymbol = (level: string) => {
     switch (level) {
-      case 'success': return '✓';
-      case 'warning': return '⚠';
-      case 'error': return '✗';
+      case 'success': return <CheckIcon className="w-4 h-4" />;
+      case 'warning': return <WarningIcon className="w-4 h-4" />;
+      case 'error': return <XMarkIcon className="w-4 h-4" />;
       default: return 'ℹ';
     }
   };

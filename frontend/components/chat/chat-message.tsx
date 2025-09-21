@@ -2,12 +2,11 @@
 
 import {
   Loader2,
-  FileText,
   CheckCircle,
   Info,
   ExternalLink,
 } from "lucide-react";
-import {Badge} from "@/components/ui/badge";
+import {DocumentIcon} from "@/components/ui/professional-icons";
 import {Button} from "@/components/ui/button";
 import {ComplianceResultsPanel} from "./ComplianceResultsPanel";
 import {ComplianceSummary} from "./ComplianceSummary";
@@ -18,6 +17,48 @@ import type { Message, ChatState } from "./chat-interface";
 import type { ReactNode } from "react";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
+
+// Utility function to truncate filename while preserving extension
+const truncateFileName = (fileName: string, maxLength: number = 30): string => {
+  if (fileName.length <= maxLength) return fileName;
+  
+  const lastDotIndex = fileName.lastIndexOf('.');
+  if (lastDotIndex === -1) {
+    // No extension found
+    return fileName.substring(0, maxLength - 3) + '...';
+  }
+  
+  const extension = fileName.substring(lastDotIndex);
+  const nameWithoutExt = fileName.substring(0, lastDotIndex);
+  const maxNameLength = maxLength - extension.length - 3; // 3 for "..."
+  
+  if (maxNameLength <= 0) {
+    return '...' + extension;
+  }
+  
+  return nameWithoutExt.substring(0, maxNameLength) + '...' + extension;
+};
+
+// Utility function to parse markdown text with inline bold formatting
+const parseMarkdownText = (text: string, isUserMessage: boolean = false): React.ReactNode => {
+  const textColor = isUserMessage ? "text-white" : "";
+  
+  // Split text by ** markers
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  
+  return parts.map((part, index) => {
+    // Check if this part is bold text
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      return (
+        <strong key={index} className={`font-semibold ${textColor}`}>
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    // Regular text
+    return <span key={index} className={textColor}>{part}</span>;
+  });
+};
 
 // Local type definitions based on the message metadata structure
 interface AnalysisResults {
@@ -96,14 +137,14 @@ export function ChatMessage({
   const renderSystemIcon = () => {
     switch (message.type) {
       case "loading":
-        return <Loader2 className="h-5 w-5 animate-spin text-[#0087d9]" />;
+        return <Loader2 className="h-4 w-4 animate-spin text-[#0087d9]" />;
       case "system":
       case "component":
-        return <CheckCircle className="h-5 w-5 text-[#0087d9]" />;
+        return <CheckCircle className="h-4 w-4 text-[#0087d9]" />;
       case "user":
-        return <FileText className="h-5 w-5 text-gray-600" />;
+        return <DocumentIcon className="h-4 w-4" />;
       default:
-        return <Info className="h-5 w-5 text-gray-500" />;
+        return <Info className="h-4 w-4 text-gray-500" />;
     }
   };
 
@@ -173,15 +214,12 @@ export function ChatMessage({
     const documentMetadata = message.metadata.documentMetadata;
 
     return (
-      <div className="mt-3 space-y-2">
+      <div className="mt-4 space-y-3">{/* Improved spacing */}
         {/* File Upload Metadata */}
         {(fileId && fileName && (
           <div className="flex items-center space-x-2 text-sm text-white">
-            <FileText className="h-4 w-4" />
-            <span>File: {fileName}</span>
-            <Badge className="text-xs border-white/30 text-white border">
-              ID: {fileId}
-            </Badge>
+            <DocumentIcon className="h-4 w-4" />
+            <span>File: {truncateFileName(fileName)}</span>
           </div>
         )) as ReactNode}
 
@@ -290,7 +328,7 @@ export function ChatMessage({
         >
           <div className="flex items-start space-x-3">
             <div className="flex-shrink-0 mt-1">{renderSystemIcon()}</div>
-            <div className="flex-1">
+            <div className="flex-1 space-y-3">{/* Add consistent spacing */}
               {message.type === "component" ? (
                 <div className="mt-2">{renderComponent()}</div>
               ) : (
@@ -345,54 +383,44 @@ export function ChatMessage({
                         }
                       </>
                     ) : (
-                      /* Original text processing */
+                      /* Enhanced text processing with markdown support */
                       message.content.split("\n").map((line, index) => {
-                      // Handle markdown-style formatting
-                      if (line.startsWith("**") && line.endsWith("**")) {
+                        // Handle empty lines
+                        if (line.trim() === "") {
+                          return <br key={index} />;
+                        }
+                        
+                        // Handle full-line headers (lines that start and end with **)
+                        if (line.startsWith("**") && line.endsWith("**") && line.length > 4) {
+                          return (
+                            <h4 key={index} className={`font-semibold mb-1 mt-2 ${
+                              message.type === "user" ? "text-white" : ""
+                            }`}>
+                              {line.slice(2, -2)}
+                            </h4>
+                          );
+                        }
+                        
+                        // Handle bullet points
+                        if (line.startsWith("- ") || line.startsWith("● ")) {
+                          return (
+                            <div key={index} className={`ml-4 mb-1 ${
+                              message.type === "user" ? "text-white" : ""
+                            }`}>
+                              {parseMarkdownText(line, message.type === "user")}
+                            </div>
+                          );
+                        }
+                        
+                        // Handle regular text with inline formatting
                         return (
-                          <h4 key={index} className={`font-semibold mb-1 mt-2 ${
+                          <p key={index} className={`mb-1 ${
                             message.type === "user" ? "text-white" : ""
                           }`}>
-                            {line.slice(2, -2)}
-                          </h4>
+                            {parseMarkdownText(line, message.type === "user")}
+                          </p>
                         );
-                      }
-                      if (line.startsWith("- ")) {
-                        return (
-                          <div key={index} className={`ml-4 mb-1 ${
-                            message.type === "user" ? "text-white" : ""
-                          }`}>
-                            {line}
-                          </div>
-                        );
-                      }
-                      if (line.trim() === "") {
-                        return <br key={index} />;
-                      }
-                      
-                      // Handle inline bold formatting (**text**)
-                      const processInlineBold = (text: string) => {
-                        const parts = text.split(/(\*\*[^*]+\*\*)/);
-                        return parts.map((part, partIndex) => {
-                          if (part.startsWith("**") && part.endsWith("**")) {
-                            return (
-                              <strong key={partIndex} className="font-semibold">
-                                {part.slice(2, -2)}
-                              </strong>
-                            );
-                          }
-                          return part;
-                        });
-                      };
-                      
-                      return (
-                        <p key={index} className={`mb-1 ${
-                          message.type === "user" ? "text-white" : ""
-                        }`}>
-                          {processInlineBold(line)}
-                        </p>
-                      );
-                    })
+                      })
                     )
                   ) : (
                     /* Render React element content directly */

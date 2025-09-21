@@ -481,7 +481,7 @@ export function ChatInterface(): React.JSX.Element {
               // Add a message about loaded metadata
               setMessages(prev => [...prev, {
                 id: generateUniqueId(),
-                content: `✓ Document metadata loaded: ${simpleMetadata.company_name || 'Unknown Company'}`,
+                content: `Document metadata loaded: ${simpleMetadata.company_name || 'Unknown Company'}`,
                 timestamp: new Date(),
                 type: "system",
               }]);
@@ -1211,7 +1211,7 @@ toast({
             moveToNextStep("metadata");
             
             addMessage(
-              `✓ **Company Information Extracted Successfully!**\n\n**Company Name:** ${simpleMetadata.company_name || "Unknown Company"}\n\n**Nature of Business:** ${simpleMetadata.nature_of_business || "Not specified"}\n\n**Operational Demographics:** ${simpleMetadata.operational_demographics || "Not specified"}\n\n**Type of Financial Statements:** ${simpleMetadata.financial_statements_type || "Not specified"}\n\nYou can review and edit these details in the side panel before proceeding to framework selection.`,
+              `**Company Information Extracted Successfully!**\n\n**Company Name:** ${simpleMetadata.company_name || "Unknown Company"}\n\n**Nature of Business:** ${simpleMetadata.nature_of_business || "Not specified"}\n\n**Operational Demographics:** ${simpleMetadata.operational_demographics || "Not specified"}\n\n**Type of Financial Statements:** ${simpleMetadata.financial_statements_type || "Not specified"}\n\nYou can review and edit these details in the side panel before proceeding to framework selection.`,
               "system",
               { documentMetadata: simpleMetadata },
             );
@@ -1340,7 +1340,7 @@ toast({
             const completionMessage: Message = {
               id: generateUniqueId(),
               type: "system",
-              content: "✓ **Analysis Complete!**\n\nYour compliance analysis has been successfully completed. You can now review the detailed results, including compliance scores, identified issues, and recommendations.",
+              content: "**Analysis Complete!**\n\nYour compliance analysis has been successfully completed. You can now review the detailed results, including compliance scores, identified issues, and recommendations.",
               timestamp: new Date(),
               showResultsButton: true,
               documentId: documentId,
@@ -2225,7 +2225,7 @@ You can review and edit these details in the side panel before proceeding to fra
 
         // Add success message
         addMessage(
-          `✓ **Framework Configuration Complete!**\n\n● **Selected Framework:** ${selectedFramework}\n● **Active Standards:** ${Array.isArray(selectedStandards) ? selectedStandards.length : 0} standards selected\n● **Compliance Scope:** ${Array.isArray(selectedStandards) ? selectedStandards.join(", ") : "none"}\n● **Analysis Scope:** Approximately ${Array.isArray(selectedStandards) ? selectedStandards.length * 50 : 0}+ compliance requirements\n\n**Ready to proceed with compliance analysis!**`,
+          `**Framework Configuration Complete!**\n\n● **Selected Framework:** ${selectedFramework}\n● **Active Standards:** ${Array.isArray(selectedStandards) ? selectedStandards.length : 0} standards selected\n● **Compliance Scope:** ${Array.isArray(selectedStandards) ? selectedStandards.join(", ") : "none"}\n● **Analysis Scope:** Approximately ${Array.isArray(selectedStandards) ? selectedStandards.length * 50 : 0}+ compliance requirements\n\n**Ready to proceed with compliance analysis!**`,
           "system",
         );
 
@@ -2479,6 +2479,23 @@ You can review and edit these details in the side panel before proceeding to fra
 
             // Move to results step
             moveToNextStep("results");
+
+            // TODO: Update session when backend sessions API is implemented
+            // if (currentSession?.session_id && chatState.documentId) {
+            //   try {
+            //     await api.sessions.update(currentSession.session_id, {
+            //       messages: [...messages, completionMessage].map(msg => ({
+            //         id: msg.id,
+            //         type: msg.type,
+            //         content: msg.content,
+            //         timestamp: msg.timestamp.toISOString(),
+            //         documentId: msg.documentId
+            //       }))
+            //     });
+            //   } catch (error) {
+            //     addLog('warning', 'Session', `Failed to update session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            //   }
+            // }
           } catch (error) {
             addLog(
               'warning',
@@ -2509,6 +2526,23 @@ You can review and edit these details in the side panel before proceeding to fra
 
             setMessages((prev) => [...prev, completionMessage]);
             moveToNextStep("results");
+
+            // TODO: Update session when backend sessions API is implemented
+            // if (currentSession?.session_id && chatState.documentId) {
+            //   try {
+            //     await api.sessions.update(currentSession.session_id, {
+            //       messages: [...messages, completionMessage].map(msg => ({
+            //         id: msg.id,
+            //         type: msg.type,
+            //         content: msg.content,
+            //         timestamp: msg.timestamp.toISOString(),
+            //         documentId: msg.documentId
+            //       }))
+            //     });
+            //   } catch (error) {
+            //     addLog('warning', 'Session', `Failed to update session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            //   }
+            // }
           }
         } else if (progressData.status === "FAILED") {
           // Analysis failed
@@ -2523,6 +2557,23 @@ You can review and edit these details in the side panel before proceeding to fra
             description: errorMessage,
             variant: "destructive",
           });
+
+          // TODO: Update session when backend sessions API is implemented
+          // if (currentSession?.session_id) {
+          //   try {
+          //     await api.sessions.update(currentSession.session_id, {
+          //       messages: messages.map(msg => ({
+          //         id: msg.id,
+          //         type: msg.type,
+          //         content: msg.content,
+          //         timestamp: msg.timestamp.toISOString(),
+          //         documentId: msg.documentId
+          //       }))
+          //     });
+          //   } catch (error) {
+          //     addLog('warning', 'Session', `Failed to update session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          //   }
+          // }
         } else if (progressData.status === "COMPLETED_WITH_ERRORS") {
           // Analysis completed with some errors
           clearInterval(pollInterval);
@@ -2987,7 +3038,7 @@ You can expand each section below to review detailed findings, evidence, and sug
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
                 <span className="font-semibold text-blue-900">
                   {chatState.currentProgress.processing_mode
                     ? `${chatState.currentProgress.processing_mode.charAt(0).toUpperCase() + chatState.currentProgress.processing_mode.slice(1)} Mode Analysis`
