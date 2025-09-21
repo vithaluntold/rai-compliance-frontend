@@ -2863,9 +2863,9 @@ You can expand each section below to review detailed findings, evidence, and sug
             }`}
           >
             <ChatInput
-              onFileUpload={(file: unknown) => {
+              onFileUpload={(file: unknown, uploadResponse?: unknown) => {
                 if (file instanceof File) {
-                  handleFileUpload(file);
+                  handleFileUpload(file, uploadResponse);
                 }
               }}
               onFrameworkSelection={handleFrameworkSelection}
