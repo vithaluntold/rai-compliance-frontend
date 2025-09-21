@@ -27,6 +27,9 @@ import {
   Database,
   Monitor,
   Target,
+  Shield,
+  AlertTriangle,
+  Clock,
 } from "lucide-react";
 import type { ChatState, ChatStep } from "./chat-interface";
 import FrameworkSelectionPanel from "./FrameworkSelectionPanel";
@@ -58,6 +61,12 @@ interface ProgressData {
     elapsed_time_formatted?: string;
     current_question?: string;
   }>;
+  circuit_breaker?: {
+    status: 'closed' | 'open' | 'half-open';
+    failure_count: number;
+    last_failure_time?: string;
+    retry_after_seconds?: number;
+  };
 }
 
 // Type definitions for analysis results
@@ -281,7 +290,7 @@ export function SidePanel({
     variant = "default" 
   }: { 
     title: string; 
-    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>; 
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
     children: React.ReactNode; 
     collapsible?: boolean; 
     sectionKey?: keyof typeof collapsedSections;
@@ -622,6 +631,28 @@ export function SidePanel({
               <div className="text-xs text-[#0087d9] dark:text-blue-400 font-semibold">Ready</div>
             </div>
           </div>
+
+          {/* System Status - Show circuit breaker status if available */}
+          {chatState.currentProgress && (chatState.currentProgress as ProgressData)?.circuit_breaker && (
+            <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-200 dark:border-blue-700">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium text-[#0087d9] dark:text-blue-400">AI Service</span>
+                <div className={`w-2 h-2 rounded-full ${
+                  (chatState.currentProgress as ProgressData).circuit_breaker?.status === 'closed' 
+                    ? 'bg-[#0087d9] animate-pulse' 
+                    : 'bg-[#0087d9]/50'
+                }`}></div>
+              </div>
+              <div className="text-xs text-[#0087d9] dark:text-blue-400 font-semibold">
+                {(chatState.currentProgress as ProgressData).circuit_breaker?.status === 'closed' 
+                  ? 'Operational' 
+                  : (chatState.currentProgress as ProgressData).circuit_breaker?.status === 'open'
+                    ? 'Protected'
+                    : 'Recovering'
+                }
+              </div>
+            </div>
+          )}
         </div>
       </CircuitCard>
     );
@@ -904,6 +935,40 @@ export function SidePanel({
             }}
           />
         </h3>
+
+        {/* Circuit Breaker Status Indicator */}
+        {progressData?.circuit_breaker && progressData.circuit_breaker.status !== 'closed' && (
+          <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-600 rounded-lg">
+            <div className="flex items-center space-x-2 mb-2">
+              <motion.div
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              >
+                <Shield className="w-4 h-4 text-[#0087d9]" />
+              </motion.div>
+              <span className="text-sm font-semibold text-[#0087d9]">AI Service Protection Active</span>
+            </div>
+            <div className="text-xs text-[#0087d9] dark:text-blue-400">
+              {progressData.circuit_breaker.status === 'open' && (
+                <div className="flex items-center space-x-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  <span>
+                    Circuit breaker open. Retrying in {progressData.circuit_breaker.retry_after_seconds || 300} seconds.
+                  </span>
+                </div>
+              )}
+              {progressData.circuit_breaker.status === 'half-open' && (
+                <div className="flex items-center space-x-1">
+                  <Clock className="w-3 h-3" />
+                  <span>Testing AI service recovery...</span>
+                </div>
+              )}
+            </div>
+            <div className="mt-2 text-xs text-[#0087d9]/70 dark:text-blue-400/70">
+              The system automatically protects against service overload. Analysis will continue once service recovers.
+            </div>
+          </div>
+        )}
 
         {progressData && (
           <div className="mb-4 p-4 bg-white dark:bg-black rounded-xl shadow-sm border border-blue-200 dark:border-blue-700">
