@@ -1279,10 +1279,10 @@ toast({
             
             // Process the metadata immediately
             const simpleMetadata = {
-              company_name: getMetadataValue(analysisResponse.metadata?.company_name),
-              nature_of_business: getMetadataValue(analysisResponse.metadata?.nature_of_business),
-              operational_demographics: getMetadataValue(analysisResponse.metadata?.operational_demographics),
-              financial_statements_type: getMetadataValue(analysisResponse.metadata?.financial_statements_type),
+              company_name: getMetadataValue(analysisResponse.metadata?.['company_name']),
+              nature_of_business: getMetadataValue(analysisResponse.metadata?.['nature_of_business']),
+              operational_demographics: getMetadataValue(analysisResponse.metadata?.['operational_demographics']),
+              financial_statements_type: getMetadataValue(analysisResponse.metadata?.['financial_statements_type']),
             };
 
             setChatState((prev) => ({
