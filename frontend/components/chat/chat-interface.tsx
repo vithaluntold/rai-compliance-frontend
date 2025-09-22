@@ -1247,16 +1247,17 @@ toast({
           { documentId }
         );
 
-        // ✅ CRITICAL FIX: Actually start the metadata extraction process on backend
+        // ✅ FIXED: Upload already triggered processing, now just poll for status
         try {
           addLog(
             'info',
             'SmartProcessing',
-            `Attempting to trigger smart categorization and metadata extraction`,
-            { documentId, endpoint: 'main analysis endpoint' }
+            `Document uploaded successfully, now polling for metadata extraction progress`,
+            { documentId, endpoint: 'status polling' }
           );
           
-          const analysisResponse = await api.analysis.analyze(documentId);
+          // The upload already started processing, just check status
+          const analysisResponse = await api.analysis.getStatus(documentId);
           
           addLog(
             'success',

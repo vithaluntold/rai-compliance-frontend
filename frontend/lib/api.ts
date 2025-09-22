@@ -25,7 +25,7 @@ export const api = {
     // Get the status of a document analysis
     async getStatus(documentId: string) {
       const response = await axios.get(
-        `${API_BASE_URL}/api/v1/analysis/status/${documentId}`,
+        `${API_BASE_URL}/api/v1/analysis/documents/${documentId}`,
       );
 
       return response.data;
