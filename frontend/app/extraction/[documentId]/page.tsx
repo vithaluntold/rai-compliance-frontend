@@ -160,6 +160,7 @@ export default function DocumentDetailsPage() {
           // Use metadata directly from status response instead of separate fetch
           if (status.metadata) {
             const extractValue = (field: unknown) => {
+              // Handle both simple string values and complex objects
               if (typeof field === 'string') return field;
               if (field && typeof field === 'object' && 'value' in field && field.value) {
                 return (field as { value: string }).value;
@@ -190,7 +191,11 @@ export default function DocumentDetailsPage() {
               _overall_status: status.metadata._overall_status || "COMPLETED",
             });
             
-            addLog('success', 'Processing', 'Metadata loaded from status response', { metadata: status.metadata });
+            addLog('success', 'Processing', 'Metadata loaded from status response', { 
+              metadata: status.metadata,
+              extractedCompanyName: cleanExtractedText(extractValue(status.metadata.company_name)),
+              extractedBusinessNature: cleanExtractedText(extractValue(status.metadata.nature_of_business))
+            });
             setProcessingStatus(null);
             setLoading(false);
           } else {
