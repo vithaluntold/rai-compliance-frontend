@@ -301,9 +301,9 @@ export function SidePanel({
     
     const variantStyles = {
       default: "bg-white dark:bg-black border-blue-200 dark:border-blue-700",
-      active: "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700 shadow-lg shadow-blue-500/10",
-      completed: "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700 shadow-lg shadow-blue-500/10",
-      processing: "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700 shadow-lg shadow-blue-500/10"
+      active: "bg-white dark:bg-black border-blue-200 dark:border-blue-700 shadow-lg shadow-blue-500/10",
+      completed: "bg-white dark:bg-black border-blue-200 dark:border-blue-700 shadow-lg shadow-blue-500/10",
+      processing: "bg-white dark:bg-black border-blue-200 dark:border-blue-700 shadow-lg shadow-blue-500/10"
     };
 
     const CardContent = () => (

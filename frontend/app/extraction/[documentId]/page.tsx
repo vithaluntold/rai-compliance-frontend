@@ -200,7 +200,17 @@ export default function DocumentDetailsPage() {
             addLog('success', 'Processing', 'Metadata loaded from status response', { 
               metadata: status.metadata,
               extractedCompanyName: cleanExtractedText(extractValue(status.metadata.company_name)),
-              extractedBusinessNature: cleanExtractedText(extractValue(status.metadata.nature_of_business))
+              extractedBusinessNature: cleanExtractedText(extractValue(status.metadata.nature_of_business)),
+              rawMetadataDebug: JSON.stringify(status.metadata),
+              finalSetMetadata: {
+                company_name: cleanExtractedText(extractValue(status.metadata.company_name)),
+                nature_of_business: cleanExtractedText(extractValue(status.metadata.nature_of_business)),
+                operational_demographics: (() => {
+                  const value = cleanExtractedText(extractValue(status.metadata.operational_demographics));
+                  return value === "Not found" ? "" : value;
+                })(),
+                financial_statements_type: cleanExtractedText(extractValue(status.metadata.financial_statements_type)),
+              }
             });
             setProcessingStatus(null);
             setLoading(false);
