@@ -86,6 +86,16 @@ export async function fetchWithLoading(
 
     const data = await response.json();
 
+    // DEBUG: Log API response data
+    // eslint-disable-next-line no-console
+    console.log('🔍 API Response:', {
+      endpoint: endpoint,
+      fullUrl: fullUrl,
+      method: options.method,
+      status: response.status,
+      data: data
+    });
+
     if (operationId) {
       globalLoadingManager?.completeOperation(
         operationId, 

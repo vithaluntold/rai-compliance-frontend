@@ -63,6 +63,22 @@ export default function DocumentDetailsPage() {
   const [lastApiCall, setLastApiCall] = useState<string | null>(null);
   const [showLogs, setShowLogs] = useState(true); // Show logs by default for debugging
 
+  // DEBUG: Track metadata state changes
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log('🔄 METADATA STATE CHANGED:', {
+      timestamp: new Date().toISOString(),
+      metadata: metadata,
+      hasData: !!metadata,
+      fields: metadata ? {
+        company_name: metadata.company_name,
+        nature_of_business: metadata.nature_of_business,
+        operational_demographics: metadata.operational_demographics,
+        financial_statements_type: metadata.financial_statements_type
+      } : 'NO METADATA'
+    });
+  }, [metadata]);
+
   // Set up the loading manager for the enhanced API
   useEffect(() => {
     setLoadingManager({
@@ -134,10 +150,20 @@ export default function DocumentDetailsPage() {
         
         // Add alert for debugging
         if (typeof window !== "undefined") {
-          // Removed console.warn for production
-// Log the complete response structure
-          // Removed console.warn for production
-// Set debug info for display
+          // DEBUG: Log the complete response structure
+          // eslint-disable-next-line no-console
+          console.warn('🚨 RAW STATUS RESPONSE:', JSON.stringify(status, null, 2));
+          
+          // DEBUG: Check metadata specifically
+          // eslint-disable-next-line no-console
+          console.warn('🔍 METADATA CHECK:', {
+            hasMetadata: !!status.metadata,
+            metadata: status.metadata,
+            typeof: typeof status.metadata,
+            keys: status.metadata ? Object.keys(status.metadata) : 'NO METADATA'
+          });
+          
+          // Set debug info for display
           setDebugInfo(`Status: ${status.status}, MetadataExtraction: ${status.metadata_extraction}, Raw: ${JSON.stringify(status).substring(0, 200)}...`);
         }
         
@@ -160,13 +186,31 @@ export default function DocumentDetailsPage() {
 
           // Use metadata directly from status response - SIMPLE AS FUCK
           if (status.metadata) {
-            setMetadata({
+            // DEBUG: Log metadata assignment process
+            // eslint-disable-next-line no-console
+            console.error('🎯 ASSIGNING METADATA:', {
+              rawMetadata: status.metadata,
+              extractedFields: {
+                company_name: status.metadata.company_name,
+                nature_of_business: status.metadata.nature_of_business,
+                operational_demographics: status.metadata.operational_demographics,
+                financial_statements_type: status.metadata.financial_statements_type
+              }
+            });
+            
+            const newMetadata = {
               company_name: status.metadata.company_name || "",
               nature_of_business: status.metadata.nature_of_business || "",
               operational_demographics: status.metadata.operational_demographics || "",
               financial_statements_type: status.metadata.financial_statements_type || "",
               _overall_status: status.metadata._overall_status || "COMPLETED",
-            });
+            };
+            
+            // DEBUG: Log what we're setting
+            // eslint-disable-next-line no-console
+            console.error('📝 SETTING METADATA STATE TO:', newMetadata);
+            
+            setMetadata(newMetadata);
             
             addLog('success', 'Processing', 'Metadata loaded - SIMPLE AND DIRECT', { 
               metadata: status.metadata
@@ -175,6 +219,8 @@ export default function DocumentDetailsPage() {
             setLoading(false);
           } else {
             // NO FALLBACK - IF NO METADATA, KEEP POLLING
+            // eslint-disable-next-line no-console
+            console.error('❌ NO METADATA FOUND IN RESPONSE');
             addLog('info', 'Processing', 'No metadata yet, continuing to poll');
           }
         } else if (metadataStatus === "PROCESSING") {
@@ -195,8 +241,10 @@ export default function DocumentDetailsPage() {
           setProcessingStatus("Document processing in progress...");
         }
       } catch (error: unknown) {
-        // Removed console.error for production
-addLog('error', 'API', 'Failed to check document status', { error: (error as Error)?.message });
+        // DEBUG: Log API errors
+        // eslint-disable-next-line no-console
+        console.error('💥 API ERROR:', error);
+        addLog('error', 'API', 'Failed to check document status', { error: (error as Error)?.message });
 
         if (!mounted) return;
 
@@ -495,6 +543,18 @@ addLog('error', 'API', 'Failed to check document status', { error: (error as Err
                     </h2>
                   </div>
                   <div className="grid gap-6 md:grid-cols-2">
+                    {/* DEBUG: Log metadata rendering */}
+                    {(() => {
+                      // eslint-disable-next-line no-console
+                      console.log('🎨 RENDERING METADATA:', {
+                        hasMetadata: !!metadata,
+                        metadata: metadata,
+                        filteredEntries: metadata ? Object.entries(metadata)
+                          .filter(([key]) => key !== "_overall_status" && key !== "overall_status") : []
+                      });
+                      return null;
+                    })()}
+                    
                     {metadata &&
                       Object.entries(metadata)
                         .filter(
@@ -502,28 +562,40 @@ addLog('error', 'API', 'Failed to check document status', { error: (error as Err
                             key !== "_overall_status" &&
                             key !== "overall_status",
                         )
-                        .map(([key, value]) => (
-                          <div
-                            key={key}
-                            className="bg-gray-50 hover:bg-gray-100 transition-colors duration-200 p-6 rounded-xl border border-gray-200"
-                          >
-                            <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
-                              <div className="w-2 h-2 bg-[hsl(var(--rai-primary))] rounded-full mr-3"></div>
-                              {fieldLabels[key] || key.replace(/_/g, " ")}
-                            </h3>
-                            {renderMetadataValue(key, value) &&
-                              (typeof value === "string" ||
-                              typeof value === "number" ? (
-                                <p className="text-gray-700 leading-relaxed">
-                                  {renderMetadataValue(key, value)}
-                                </p>
-                              ) : (
-                                <div className="text-gray-700 leading-relaxed">
-                                  {renderMetadataValue(key, value)}
-                                </div>
-                              ))}
-                          </div>
-                        ))}
+                        .map(([key, value]) => {
+                          // DEBUG: Log each field being rendered
+                          // eslint-disable-next-line no-console
+                          console.log('🎨 RENDERING FIELD:', {
+                            key: key,
+                            value: value,
+                            type: typeof value,
+                            hasValue: !!value,
+                            renderedValue: renderMetadataValue(key, value)
+                          });
+                          
+                          return (
+                            <div
+                              key={key}
+                              className="bg-gray-50 hover:bg-gray-100 transition-colors duration-200 p-6 rounded-xl border border-gray-200"
+                            >
+                              <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
+                                <div className="w-2 h-2 bg-[hsl(var(--rai-primary))] rounded-full mr-3"></div>
+                                {fieldLabels[key] || key.replace(/_/g, " ")}
+                              </h3>
+                              {renderMetadataValue(key, value) &&
+                                (typeof value === "string" ||
+                                typeof value === "number" ? (
+                                  <p className="text-gray-700 leading-relaxed">
+                                    {renderMetadataValue(key, value)}
+                                  </p>
+                                ) : (
+                                  <div className="text-gray-700 leading-relaxed">
+                                    {renderMetadataValue(key, value)}
+                                  </div>
+                                ))}
+                            </div>
+                          );
+                        })}
                   </div>
                 </div>
 
