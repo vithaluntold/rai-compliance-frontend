@@ -481,7 +481,7 @@ export function ChatInterface(): React.JSX.Element {
               // Add a message about loaded metadata
               setMessages(prev => [...prev, {
                 id: generateUniqueId(),
-                content: `Document metadata loaded: ${simpleMetadata.company_name || 'Unknown Company'}`,
+                content: `Document metadata loaded: ${simpleMetadata.company_name}`,
                 timestamp: new Date(),
                 type: "system",
               }]);
@@ -661,7 +661,7 @@ export function ChatInterface(): React.JSX.Element {
           setMessages([
             {
               id: generateUniqueId(),
-              content: `Document loaded! Found metadata for: ${simpleMetadata.company_name || 'Unknown Company'}`,
+              content: `Document loaded! Found metadata for: ${simpleMetadata.company_name}`,
               timestamp: new Date(),
               type: "system",
               metadata: {
@@ -1295,7 +1295,7 @@ toast({
             moveToNextStep("metadata");
             
             addMessage(
-              `**Company Information Extracted Successfully!**\n\n**Company Name:** ${simpleMetadata.company_name || "Unknown Company"}\n\n**Nature of Business:** ${simpleMetadata.nature_of_business || "Not specified"}\n\n**Operational Demographics:** ${simpleMetadata.operational_demographics || "Not specified"}\n\n**Type of Financial Statements:** ${simpleMetadata.financial_statements_type || "Not specified"}\n\nYou can review and edit these details in the side panel before proceeding to framework selection.`,
+              `**Company Information Extracted Successfully!**\n\n**Company Name:** ${simpleMetadata.company_name}\n\n**Nature of Business:** ${simpleMetadata.nature_of_business}\n\n**Operational Demographics:** ${simpleMetadata.operational_demographics}\n\n**Type of Financial Statements:** ${simpleMetadata.financial_statements_type}\n\nYou can review and edit these details in the side panel before proceeding to framework selection.`,
               "system",
               { documentMetadata: simpleMetadata },
             );
@@ -1784,10 +1784,10 @@ toast({
         setUploadProgress(100);
 
         // ✅ FIXED: Add detailed metadata message to chat (handle stuck backend case)
-        const companyName = simpleMetadata.company_name || "Unknown Company";
-        const businessNature = simpleMetadata.nature_of_business || "Not specified";
-        const demographics = simpleMetadata.operational_demographics || "Not specified";
-        const financialStatementsType = simpleMetadata.financial_statements_type || "Not specified";
+        const companyName = simpleMetadata.company_name;
+        const businessNature = simpleMetadata.nature_of_business;
+        const demographics = simpleMetadata.operational_demographics;
+        const financialStatementsType = simpleMetadata.financial_statements_type;
 
         // Show different message if backend was stuck
         const metadataMessage = isBackendStuck 
@@ -2132,9 +2132,9 @@ You can review and edit these details in the side panel before proceeding to fra
 
           const suggestedStandards = await api.analysis.suggestAccountingStandards({
             framework: frameworkId,
-            company_name: chatState.documentMetadata.company_name || 'Unknown Company',
-            nature_of_business: chatState.documentMetadata.nature_of_business || 'Not specified',
-            operational_demographics: chatState.documentMetadata.operational_demographics || 'Not specified',
+            company_name: chatState.documentMetadata.company_name || '',
+            nature_of_business: chatState.documentMetadata.nature_of_business || '',
+            operational_demographics: chatState.documentMetadata.operational_demographics || '',
             financial_statements_type: chatState.documentMetadata.financial_statements_type || 'General',
           });
 

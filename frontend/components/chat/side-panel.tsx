@@ -804,14 +804,14 @@ export function SidePanel({
                   <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-700">
                     <div className="text-xs font-medium text-[#0087d9] dark:text-blue-400">Company</div>
                     <div className="text-xs text-[#0087d9] dark:text-blue-400 mt-1 truncate font-medium">
-                      {getMetadataValue(chatState.documentMetadata?.company_name) || "Not available"}
+                      {getMetadataValue(chatState.documentMetadata?.company_name)}
                     </div>
                   </div>
 
                   <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-700">
                     <div className="text-xs font-medium text-[#0087d9] dark:text-blue-400">Business</div>
                     <div className="text-xs text-[#0087d9] dark:text-blue-400 mt-1 line-clamp-2 font-medium">
-                      {getMetadataValue(chatState.documentMetadata?.nature_of_business) || "Not available"}
+                      {getMetadataValue(chatState.documentMetadata?.nature_of_business)}
                     </div>
                   </div>
 
@@ -819,14 +819,14 @@ export function SidePanel({
                     <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-700">
                       <div className="text-xs font-medium text-[#0087d9] dark:text-blue-400">Geography</div>
                       <div className="text-xs text-[#0087d9] dark:text-blue-400 mt-1 truncate font-medium">
-                        {getMetadataValue(chatState.documentMetadata?.operational_demographics) || "Not specified"}
+                        {getMetadataValue(chatState.documentMetadata?.operational_demographics)}
                       </div>
                     </div>
 
                     <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-700">
                       <div className="text-xs font-medium text-[#0087d9] dark:text-blue-400">Statement</div>
                       <div className="text-xs text-[#0087d9] dark:text-blue-400 mt-1 truncate font-medium">
-                        {getMetadataValue(chatState.documentMetadata?.financial_statements_type) || "Not specified"}
+                        {getMetadataValue(chatState.documentMetadata?.financial_statements_type)}
                       </div>
                     </div>
                   </div>

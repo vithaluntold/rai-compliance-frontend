@@ -276,10 +276,10 @@ export const api = {
 
       // Helper function to extract value from metadata field (handles both string and object formats)
       const extractMetadataValue = (field: Record<string, unknown> | string | undefined): string => {
-        if (!field) return "Not available";
+        if (!field) return "";
         if (typeof field === "string") return field;
         if (typeof field === "object" && field['value'] && typeof field['value'] === "string") return field['value'];
-        return "Not available";
+        return "";
       };
 
       // Transform the metadata to match the expected structure

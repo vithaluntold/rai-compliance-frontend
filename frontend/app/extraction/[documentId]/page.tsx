@@ -218,12 +218,12 @@ addLog('error', 'API', 'Failed to check document status', { error: (error as Err
           if (field && typeof field === 'object' && 'value' in field && field.value) {
             return (field as { value: string }).value;
           }
-          return "Not available";
+          return "";
         };
         
         // Helper function to clean extracted text while preserving operational detail
         const cleanExtractedText = (text: string) => {
-          if (!text || text === "Not available") return text;
+          if (!text || text === "") return text;
           
           // Remove confidence indicators like "CERTAIN|" but preserve the content
           let cleaned = text.replace(/^(CERTAIN|PROBABLE|POSSIBLE)\|/i, '');
@@ -271,7 +271,7 @@ addLog('error', 'API', 'Failed to check document status', { error: (error as Err
           nature_of_business: cleanExtractedText(extractValue(response.metadata.nature_of_business)),
           operational_demographics: (() => {
             const value = cleanExtractedText(extractValue(response.metadata.operational_demographics));
-            return value === "Not found" ? "Not available" : value;
+            return value === "Not found" ? "" : value;
           })(),
           _overall_status: response.metadata._overall_status || "PENDING",
         });

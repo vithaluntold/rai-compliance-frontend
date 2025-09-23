@@ -234,7 +234,7 @@ export function ChatMessage({
             <div className="space-y-1 text-sm text-white">
               <div>
                 <strong>Company:</strong>{" "}
-                {getMetadataValue((documentMetadata as Record<string, unknown>)?.["company_name"]) || "Not found"}
+                {getMetadataValue((documentMetadata as Record<string, unknown>)?.["company_name"])}
               </div>
               <div>
                 <strong>Business:</strong>{" "}
