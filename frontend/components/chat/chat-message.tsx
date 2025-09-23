@@ -429,10 +429,8 @@ export function ChatMessage({
                 </div>
               )}
 
-              {/* Results Button for completed analysis */}
-              {message.showResultsButton &&
-                message.documentId &&
-                onGoToResults && (
+              {/* Results Button for completed analysis - ALWAYS ACTIVE WHEN VISIBLE */}
+              {message.documentId && onGoToResults && (
                   <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
                     <Button
                       onClick={() => onGoToResults(message.documentId!)}
@@ -441,11 +439,14 @@ export function ChatMessage({
                       <ExternalLink className="h-4 w-4 mr-2" />
                       View Detailed Results
                     </Button>
+                    <div className="mt-2 text-xs text-green-600 font-bold">
+                      DEBUG MODE: Button forced active for testing
+                    </div>
                   </div>
                 )}
 
-              {/* Temporary debug info */}
-              {message.showResultsButton && (
+              {/* Debug info for any message with documentId */}
+              {message.documentId && (
                 <div className="mt-2 text-xs text-gray-500 bg-gray-100 p-2 rounded">
                   DEBUG: showResultsButton={String(message.showResultsButton)}, 
                   documentId={message.documentId || 'undefined'}, 
