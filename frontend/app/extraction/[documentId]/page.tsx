@@ -1,6 +1,6 @@
 "use client";
 
-import {useEffect, useState, useCallback} from "react";
+import {useEffect, useState} from "react";
 import {useParams, useRouter} from "next/navigation";
 import Image from "next/image";
 import {Button} from "@/components/ui/button";
@@ -158,68 +158,24 @@ export default function DocumentDetailsPage() {
             clearInterval(pollingInterval);
           }
 
-          // Use metadata directly from status response instead of separate fetch
+          // Use metadata directly from status response - SIMPLE AS FUCK
           if (status.metadata) {
-            const extractValue = (field: unknown) => {
-              // Handle both simple string values and complex objects
-              if (typeof field === 'string') return field;
-              if (field && typeof field === 'object' && 'value' in field && field.value) {
-                return (field as { value: string }).value;
-              }
-              // If it's any other type, convert to string safely
-              if (field !== null && field !== undefined) {
-                return String(field);
-              }
-              return "";
-            };
-            
-            const cleanExtractedText = (text: string) => {
-              if (!text || text === "") return text;
-              let cleaned = text.replace(/^(CERTAIN|PROBABLE|POSSIBLE)\|/i, '');
-              const parts = cleaned.split('|');
-              cleaned = parts[0]?.trim() || cleaned;
-              cleaned = cleaned.replace(/\n\nOperational Demographics Certainty Scoring:[\s\S]*$/i, '');
-              cleaned = cleaned.trim();
-              if (cleaned && !cleaned.match(/[.!?]$/)) {
-                cleaned += '.';
-              }
-              return cleaned;
-            };
-
             setMetadata({
-              company_name: cleanExtractedText(extractValue(status.metadata.company_name)),
-              nature_of_business: cleanExtractedText(extractValue(status.metadata.nature_of_business)),
-              operational_demographics: (() => {
-                const value = cleanExtractedText(extractValue(status.metadata.operational_demographics));
-                return value === "Not found" ? "" : value;
-              })(),
-              financial_statements_type: cleanExtractedText(extractValue(status.metadata.financial_statements_type)),
+              company_name: status.metadata.company_name || "",
+              nature_of_business: status.metadata.nature_of_business || "",
+              operational_demographics: status.metadata.operational_demographics || "",
+              financial_statements_type: status.metadata.financial_statements_type || "",
               _overall_status: status.metadata._overall_status || "COMPLETED",
             });
             
-            addLog('success', 'Processing', 'Metadata loaded from status response', { 
-              metadata: status.metadata,
-              extractedCompanyName: cleanExtractedText(extractValue(status.metadata.company_name)),
-              extractedBusinessNature: cleanExtractedText(extractValue(status.metadata.nature_of_business)),
-              rawMetadataDebug: JSON.stringify(status.metadata),
-              finalSetMetadata: {
-                company_name: cleanExtractedText(extractValue(status.metadata.company_name)),
-                nature_of_business: cleanExtractedText(extractValue(status.metadata.nature_of_business)),
-                operational_demographics: (() => {
-                  const value = cleanExtractedText(extractValue(status.metadata.operational_demographics));
-                  return value === "Not found" ? "" : value;
-                })(),
-                financial_statements_type: cleanExtractedText(extractValue(status.metadata.financial_statements_type)),
-              }
+            addLog('success', 'Processing', 'Metadata loaded - SIMPLE AND DIRECT', { 
+              metadata: status.metadata
             });
             setProcessingStatus(null);
             setLoading(false);
           } else {
-            // Fallback to separate fetch if no metadata in status
-            setTimeout(() => {
-              setProcessingStatus(null);
-              fetchMetadata();
-            }, 500);
+            // NO FALLBACK - IF NO METADATA, KEEP POLLING
+            addLog('info', 'Processing', 'No metadata yet, continuing to poll');
           }
         } else if (metadataStatus === "PROCESSING") {
           addLog('info', 'Processing', 'Metadata extraction in progress');
@@ -263,92 +219,7 @@ addLog('error', 'API', 'Failed to check document status', { error: (error as Err
         clearInterval(pollingInterval);
       }
     };
-  }, [documentId, addLog, apiCallCount]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const fetchMetadata = useCallback(async () => {
-    try {      
-      setApiCallCount(prev => prev + 1);
-      setLastApiCall(new Date().toLocaleTimeString());
-      
-      const response = await enhancedApi.documents.get(documentId);      
-      if (response.metadata) {        
-        // Helper function to extract value from metadata field
-        const extractValue = (field: unknown) => {
-          if (typeof field === 'string') return field;
-          if (field && typeof field === 'object' && 'value' in field && field.value) {
-            return (field as { value: string }).value;
-          }
-          return "";
-        };
-        
-        // Helper function to clean extracted text while preserving operational detail
-        const cleanExtractedText = (text: string) => {
-          if (!text || text === "") return text;
-          
-          // Remove confidence indicators like "CERTAIN|" but preserve the content
-          let cleaned = text.replace(/^(CERTAIN|PROBABLE|POSSIBLE)\|/i, '');
-          
-          // For business nature, preserve operational details but clean up technical references
-          if (text.toLowerCase().includes('management') || text.toLowerCase().includes('development') || text.toLowerCase().includes('business')) {
-            // Split by | and intelligently combine meaningful parts
-            const parts = cleaned.split('|');
-            const meaningfulParts = [];
-            for (let part of parts) {
-              part = part.trim();
-              // Skip page references, but keep operational descriptions
-              if (!part.match(/^p\.\d+/i) && 
-                  !part.match(/^\d+,?\s*\d*$/i) && 
-                  part.length > 3 &&
-                  !part.toLowerCase().includes('headers')) {
-                meaningfulParts.push(part);
-              }
-            }
-            
-            // Combine meaningful parts with proper punctuation
-            cleaned = meaningfulParts.slice(0, 2).join('. ');
-          } else {
-            // For other fields, take the main content
-            const parts = cleaned.split('|');
-            cleaned = parts[0]?.trim() || cleaned;
-          }
-          
-          // Remove specific technical scoring sections but preserve operational context
-          cleaned = cleaned.replace(/\n\nOperational Demographics Certainty Scoring:[\s\S]*$/i, '');
-          
-          // Clean up extra whitespace
-          cleaned = cleaned.trim();
-          
-          // Ensure proper sentence structure
-          if (cleaned && !cleaned.match(/[.!?]$/)) {
-            cleaned += '.';
-          }
-          
-          return cleaned;
-        };
-        
-        setMetadata({
-          company_name: cleanExtractedText(extractValue(response.metadata.company_name)),
-          nature_of_business: cleanExtractedText(extractValue(response.metadata.nature_of_business)),
-          operational_demographics: (() => {
-            const value = cleanExtractedText(extractValue(response.metadata.operational_demographics));
-            return value === "Not found" ? "" : value;
-          })(),
-          _overall_status: response.metadata._overall_status || "PENDING",
-        });
-      } else {
-        // Removed console.log for production
-      }
-    } catch {
-      // Removed console.error for production
-      toast({
-        title: "Error",
-        description: "Failed to load document metadata",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [documentId, toast]);
+  }, [documentId, addLog, apiCallCount]);
 
   const handleContinue = () => {
     setShowFrameworkSelector(true);
