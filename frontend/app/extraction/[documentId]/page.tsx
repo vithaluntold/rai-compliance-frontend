@@ -27,6 +27,7 @@ const fieldLabels: Record<string, string> = {
   company_name: "Company Name",
   nature_of_business: "Nature of Business",
   operational_demographics: "Operational Demographics",
+  financial_statements_type: "Type of Financial Statements",
   // Add more mappings as needed
 };
 
@@ -165,6 +166,10 @@ export default function DocumentDetailsPage() {
               if (field && typeof field === 'object' && 'value' in field && field.value) {
                 return (field as { value: string }).value;
               }
+              // If it's any other type, convert to string safely
+              if (field !== null && field !== undefined) {
+                return String(field);
+              }
               return "";
             };
             
@@ -188,6 +193,7 @@ export default function DocumentDetailsPage() {
                 const value = cleanExtractedText(extractValue(status.metadata.operational_demographics));
                 return value === "Not found" ? "" : value;
               })(),
+              financial_statements_type: cleanExtractedText(extractValue(status.metadata.financial_statements_type)),
               _overall_status: status.metadata._overall_status || "COMPLETED",
             });
             
