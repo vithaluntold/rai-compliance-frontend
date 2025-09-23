@@ -157,10 +157,49 @@ export default function DocumentDetailsPage() {
             clearInterval(pollingInterval);
           }
 
-          setTimeout(() => {
+          // Use metadata directly from status response instead of separate fetch
+          if (status.metadata) {
+            const extractValue = (field: unknown) => {
+              if (typeof field === 'string') return field;
+              if (field && typeof field === 'object' && 'value' in field && field.value) {
+                return (field as { value: string }).value;
+              }
+              return "";
+            };
+            
+            const cleanExtractedText = (text: string) => {
+              if (!text || text === "") return text;
+              let cleaned = text.replace(/^(CERTAIN|PROBABLE|POSSIBLE)\|/i, '');
+              const parts = cleaned.split('|');
+              cleaned = parts[0]?.trim() || cleaned;
+              cleaned = cleaned.replace(/\n\nOperational Demographics Certainty Scoring:[\s\S]*$/i, '');
+              cleaned = cleaned.trim();
+              if (cleaned && !cleaned.match(/[.!?]$/)) {
+                cleaned += '.';
+              }
+              return cleaned;
+            };
+
+            setMetadata({
+              company_name: cleanExtractedText(extractValue(status.metadata.company_name)),
+              nature_of_business: cleanExtractedText(extractValue(status.metadata.nature_of_business)),
+              operational_demographics: (() => {
+                const value = cleanExtractedText(extractValue(status.metadata.operational_demographics));
+                return value === "Not found" ? "" : value;
+              })(),
+              _overall_status: status.metadata._overall_status || "COMPLETED",
+            });
+            
+            addLog('success', 'Processing', 'Metadata loaded from status response', { metadata: status.metadata });
             setProcessingStatus(null);
-            fetchMetadata();
-          }, 500);
+            setLoading(false);
+          } else {
+            // Fallback to separate fetch if no metadata in status
+            setTimeout(() => {
+              setProcessingStatus(null);
+              fetchMetadata();
+            }, 500);
+          }
         } else if (metadataStatus === "PROCESSING") {
           addLog('info', 'Processing', 'Metadata extraction in progress');
           setProcessingStatus("Extracting metadata from document...");
