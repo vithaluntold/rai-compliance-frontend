@@ -43,7 +43,7 @@ export const api = {
     // Get available frameworks and standards
     async getFrameworks() {
       const response = await axios.get(
-        `${API_BASE_URL}/api/v1/analysis/frameworks`,
+        `${API_BASE_URL}/api/v1/frameworks`,
       );
 
       return response.data;

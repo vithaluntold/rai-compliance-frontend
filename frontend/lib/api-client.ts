@@ -617,7 +617,7 @@ export const api = {
     },
     getFrameworks: async (): Promise<Record<string, unknown>> => {
       try {
-        return await fetchApi("/analysis/frameworks");
+        return await fetchApi("/frameworks");
       } catch (error) {
         // Internal logging: Error getting frameworks
         throw error;
@@ -860,7 +860,7 @@ export const enhancedApi = {
 
     async getFrameworks() {
       return fetchWithLoading(
-        "/analysis/frameworks",
+        "/frameworks",
         { method: "GET" },
         "Loading frameworks",
         true
