@@ -3,7 +3,7 @@ services:
     name: rai-compliance-backend
     env: python
     plan: starter
-    buildCommand: python -m pip install --upgrade pip; python -m pip install psutil==5.9.5; pip install --no-cache-dir -r requirements.txt
+    buildCommand: pip install --no-cache-dir -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: AZURE_OPENAI_API_KEY
