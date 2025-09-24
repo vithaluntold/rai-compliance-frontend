@@ -1,7 +1,7 @@
 {
   "name": "rai-compliance-monorepo",
   "version": "1.0.0",
-  "description": "RAi Compliance Engine - Frontend deployment",
+  "description": "RAi Compliance Engine - Frontend deployment - Framework fix a28fa50",
   "scripts": {
     "build": "cd frontend && npm ci && npm run build",
     "start": "cd frontend && npm start",
