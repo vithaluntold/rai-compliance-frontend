@@ -809,22 +809,21 @@ toast({
           ) {
             if (response['frameworks'].length === 0) {
               // Fallback: Provide basic IFRS framework when backend returns empty
-              const fallbackFrameworks = [
+              setFrameworks([
                 {
                   id: "IFRS",
                   name: "IFRS",
                   description: "International Financial Reporting Standards (IFRS), including International Accounting Standards (IAS).",
                   standards: [
-                    { id: "IAS 1", name: "IAS 1 - Presentation of Financial Statements", available: true },
-                    { id: "IAS 2", name: "IAS 2 - Inventories", available: true },
-                    { id: "IAS 16", name: "IAS 16 - Property, Plant and Equipment", available: true },
-                    { id: "IAS 40", name: "IAS 40 - Investment Property", available: true },
-                    { id: "IFRS 15", name: "IFRS 15 - Revenue from Contracts with Customers", available: true },
-                    { id: "IFRS 16", name: "IFRS 16 - Leases", available: true }
+                    { id: "IAS 1", name: "IAS 1 - Presentation of Financial Statements", description: "Presentation of Financial Statements", available: true },
+                    { id: "IAS 2", name: "IAS 2 - Inventories", description: "Inventories", available: true },
+                    { id: "IAS 16", name: "IAS 16 - Property, Plant and Equipment", description: "Property, Plant and Equipment", available: true },
+                    { id: "IAS 40", name: "IAS 40 - Investment Property", description: "Investment Property", available: true },
+                    { id: "IFRS 15", name: "IFRS 15 - Revenue from Contracts with Customers", description: "Revenue from Contracts with Customers", available: true },
+                    { id: "IFRS 16", name: "IFRS 16 - Leases", description: "Leases", available: true }
                   ]
                 }
-              ];
-              setFrameworks(fallbackFrameworks);
+              ]);
               addMessage(
                 "Great! Now let's select the accounting standards to analyze. Which framework would you like me to check your document against?",
                 "system",
