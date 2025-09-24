@@ -22,7 +22,7 @@ export async function GET(
   }
 
   try {
-    const response = await fetch(`${backendUrl}/api/v1/analysis/results/${documentId}`);
+    const response = await fetch(`${backendUrl}/api/v1/documents/${documentId}/results`);
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: "Failed to fetch" }));
@@ -63,7 +63,7 @@ export async function DELETE(
   try {
     // First check if document exists
     const checkResponse = await fetch(
-      `${backendUrl}/api/v1/analysis/documents/${documentId}`,
+      `${backendUrl}/api/v1/documents/${documentId}`,
       {
         method: "GET",
         headers: {
@@ -80,7 +80,7 @@ export async function DELETE(
 
     // If document exists, proceed with deletion
     const response = await fetch(
-      `${backendUrl}/api/v1/analysis/documents/${documentId}`,
+      `${backendUrl}/api/v1/documents/${documentId}`,
       {
         method: "DELETE",
         headers: {

@@ -3,7 +3,7 @@ const DEFAULT_API_URL = "https://rai-compliance-backend.onrender.com";
 const API_VERSION = "v1";
 
 export const API_BASE_URL = process.env['NEXT_PUBLIC_API_URL'] || DEFAULT_API_URL;
-const UPLOAD_PATH = `${API_BASE_URL}/api/${API_VERSION}/analysis/upload`;
+const UPLOAD_PATH = `${API_BASE_URL}/api/${API_VERSION}/upload`;
 
 // Enhanced loading management (from enhanced-api-client.ts)
 interface LoadingManager {
@@ -367,7 +367,7 @@ export const api = {
     },
     get: async (documentId: string): Promise<Document> => {
       const response = await fetch(
-        `${API_BASE_URL}/api/v1/analysis/documents/${documentId}`,
+        `${API_BASE_URL}/api/v1/documents/${documentId}`,
         commonFetchOptions,
       );
       if (!response.ok) {
@@ -396,7 +396,7 @@ export const api = {
     },
     getAll: async (): Promise<Document[]> => {
       const response = await fetch(
-        "/api/v1/analysis/documents",
+        "/api/v1/documents",
         commonFetchOptions,
       );
       if (!response.ok) {
@@ -406,7 +406,7 @@ export const api = {
     },
     getStatus: async (documentId: string): Promise<AnalysisStatus> => {
       const response = await fetch(
-        `${API_BASE_URL}/api/v1/analysis/documents/${documentId}`,
+        `${API_BASE_URL}/api/v1/documents/${documentId}`,
         commonFetchOptions,
       );
       if (!response.ok) {
@@ -433,7 +433,7 @@ export const api = {
       current_keyword?: string;
     }> => {
       const response = await fetch(
-        `${API_BASE_URL}/api/v1/analysis/documents/${documentId}/keywords`,
+        `${API_BASE_URL}/api/v1/documents/${documentId}/keywords`,
         commonFetchOptions,
       );
       if (!response.ok) {
@@ -447,7 +447,7 @@ export const api = {
       try {
         // ✅ Step 1: Basic text extraction (working)
         // Step 1: Basic text extraction (logged internally)
-        const extractResponse = await fetchApi(`/analysis/documents/${documentId}/results`, {
+        const extractResponse = await fetchApi(`/documents/${documentId}/results`, {
           method: "GET",
         });
         // Text extraction completed
@@ -455,7 +455,7 @@ export const api = {
         // ✅ Step 2: Get main analysis status (backend auto-processes on upload)
         // Step 2: Checking analysis status - backend should auto-process
         try {
-          const analysisResponse = await fetchApi(`/analysis/documents/${documentId}`, {
+          const analysisResponse = await fetchApi(`/documents/${documentId}`, {
             method: "GET",
           });
           // Analysis status checked
@@ -480,7 +480,7 @@ export const api = {
         // Step 3: Checking status to potentially trigger AI processing
         for (let i = 0; i < 3; i++) {
           try {
-            const statusResponse = await fetchApi(`/analysis/documents/${documentId}`, {
+            const statusResponse = await fetchApi(`/documents/${documentId}`, {
               method: "GET",
             });
             // Status check logged internally
@@ -509,7 +509,7 @@ export const api = {
     },
     analyzeCompliance: async (documentId: string) => {
       try {
-        const response = await fetchApi(`/analysis/documents/${documentId}`);
+        const response = await fetchApi(`/documents/${documentId}`);
         return response;
       } catch (error) {
         throw error;
@@ -517,7 +517,7 @@ export const api = {
     },
     getResults: async (documentId: string): Promise<AnalysisResults> => {
       try {
-        const response = await fetchApi(`/analysis/documents/${documentId}`);
+        const response = await fetchApi(`/documents/${documentId}`);
         
         if (response.sections && Array.isArray(response.sections)) {
           response.sections = response.sections.map((section: Record<string, unknown>) => {
@@ -559,7 +559,7 @@ export const api = {
     },
     getStatus: async (documentId: string): Promise<AnalysisStatus> => {
       try {
-        const response = await fetchApi(`/analysis/documents/${documentId}`);
+        const response = await fetchApi(`/documents/${documentId}`);
         // Transform the response to match the expected structure
         return {
           status: response.status || "PROCESSING",
@@ -579,7 +579,7 @@ export const api = {
       documentId: string,
     ): Promise<ComplianceReport> => {
       const response = await fetchApi(
-        `/analysis/documents/${documentId}/results`,
+        `/documents/${documentId}/results`,
         {
           method: "GET",
           headers: {
@@ -594,14 +594,14 @@ export const api = {
       itemId: string,
       data: { status?: string; comments?: string },
     ) => {
-      return fetchApi(`/analysis/documents/${documentId}/checklist/${itemId}`, {
-        method: "PUT",
+      return fetchApi(`/documents/${documentId}/items/${itemId}`, {
+        method: "PATCH",
         body: JSON.stringify(data),
       });
     },
     getChecklist: async (): Promise<Record<string, unknown>> => {
       try {
-        return await fetchApi("/analysis/checklist");
+        return await fetchApi("/checklist");
       } catch (error) {
         // Internal logging: Error getting checklist
         throw error;
@@ -609,7 +609,7 @@ export const api = {
     },
     getMetadataFields: async (): Promise<Record<string, unknown>> => {
       try {
-        return await fetchApi("/analysis/metadata/fields");
+        return await fetchApi("/metadata/fields");
       } catch (error) {
         // Internal logging: Error getting metadata fields
         throw error;
@@ -617,9 +617,25 @@ export const api = {
     },
     getFrameworks: async (): Promise<Record<string, unknown>> => {
       try {
-        return await fetchApi("/analysis/frameworks");
+        return await fetchApi("/frameworks");
       } catch (error) {
         // Internal logging: Error getting frameworks
+        throw error;
+      }
+    },
+    getFrameworkChecklist: async (framework: string, standard: string): Promise<Record<string, unknown>> => {
+      try {
+        return await fetchApi(`/checklist/${framework}/${standard}`);
+      } catch (error) {
+        // Internal logging: Error getting framework checklist
+        throw error;
+      }
+    },
+    getRateLimitStatus: async (): Promise<Record<string, unknown>> => {
+      try {
+        return await fetchApi("/rate-limit-status");
+      } catch (error) {
+        // Internal logging: Error getting rate limit status
         throw error;
       }
     },
@@ -631,7 +647,7 @@ export const api = {
       financial_statements_type: string;
     }): Promise<Record<string, unknown>> => {
       try {
-        return await fetchApi("/analysis/suggest-standards", {
+        return await fetchApi("/suggest-standards", {
           method: "POST",
           body: JSON.stringify(metadata),
         });
@@ -642,7 +658,7 @@ export const api = {
     },
     getAnalysisProgress: async (documentId: string): Promise<Record<string, unknown>> => {
       try {
-        return await fetchApi(`/analysis/progress/${documentId}`);
+        return await fetchApi(`/progress/${documentId}`);
       } catch (error) {
         // Internal logging: Error getting analysis progress
         throw error;
@@ -666,7 +682,7 @@ export const api = {
     ) => {
       
       return await fetchApi(
-        `/analysis/documents/${documentId}/select-processing-mode`,
+        `/documents/${documentId}/select-processing-mode`,
         {
           method: "POST",
           body: JSON.stringify(data),
@@ -683,7 +699,7 @@ export const api = {
       },
     ) => {
       return await fetchApi(
-        `/analysis/documents/${documentId}/select-framework`,
+        `/documents/${documentId}/select-framework`,
         {
           method: "POST",
           body: JSON.stringify(data),
@@ -691,7 +707,7 @@ export const api = {
       );
     },
     getProgress: async (documentId: string) => {
-      return await fetchApi(`/analysis/progress/${documentId}`);
+      return await fetchApi(`/progress/${documentId}`);
     },
     startCompliance: async (
       documentId: string,
@@ -706,10 +722,18 @@ export const api = {
     ) => {
       
       return await fetchApi(
-        `/analysis/documents/${documentId}/start-compliance`,
+        `/documents/${documentId}/start-compliance`,
         {
           method: "POST",
           body: JSON.stringify(options),
+        },
+      );
+    },
+    startChecklistProcessing: async (documentId: string) => {
+      return await fetchApi(
+        `/documents/${documentId}/start-checklist-processing`,
+        {
+          method: "POST",
         },
       );
     },
@@ -720,12 +744,12 @@ export const api = {
     }: {
       documentId: string;
     }): Promise<AnalysisResults> => {
-      return fetchApi(`/analysis/documents/${documentId}`);
+      return fetchApi(`/documents/${documentId}`);
     },
   },
   report: {
     get: async (documentId: string): Promise<Record<string, unknown>> => {
-      return fetchApi(`/analysis/documents/${documentId}/report`);
+      return fetchApi(`/documents/${documentId}/report`);
     },
   },
   sessions: {
@@ -776,7 +800,7 @@ export const enhancedApi = {
   analysis: {
     async getStatus(documentId: string) {
       return fetchWithLoading(
-        `/analysis/documents/${documentId}`,
+        `/documents/${documentId}`,
         { method: "GET" },
         "Checking document status",
         true
@@ -792,7 +816,7 @@ export const enhancedApi = {
       }
 
       return fetchWithLoading(
-        "/analysis/upload",
+        "/upload",
         { method: "POST", body: formData },
         "Uploading document",
         true
@@ -806,7 +830,7 @@ export const enhancedApi = {
       extensiveSearch?: boolean;
     }) {
       return fetchWithLoading(
-        `/analysis/documents/${documentId}/select-framework`,
+        `/documents/${documentId}/select-framework`,
         {
           method: "POST",
           body: JSON.stringify(options),
@@ -818,7 +842,7 @@ export const enhancedApi = {
 
     async getResults(documentId: string) {
       return fetchWithLoading(
-        `/analysis/documents/${documentId}`,
+        `/documents/${documentId}`,
         { method: "GET" },
         "Loading analysis results",
         true
@@ -827,7 +851,7 @@ export const enhancedApi = {
 
     async getProgress(documentId: string) {
       return fetchWithLoading(
-        `/analysis/progress/${documentId}`,
+        `/progress/${documentId}`,
         { method: "GET" },
         "Checking analysis progress",
         false // Don't show progress for polling
@@ -836,10 +860,28 @@ export const enhancedApi = {
 
     async getFrameworks() {
       return fetchWithLoading(
-        "/analysis/frameworks",
+        "/frameworks",
         { method: "GET" },
         "Loading frameworks",
         true
+      );
+    },
+
+    async getFrameworkChecklist(framework: string, standard: string) {
+      return fetchWithLoading(
+        `/checklist/${framework}/${standard}`,
+        { method: "GET" },
+        "Loading framework checklist",
+        true
+      );
+    },
+
+    async getRateLimitStatus() {
+      return fetchWithLoading(
+        "/rate-limit-status",
+        { method: "GET" },
+        "Checking rate limits",
+        false
       );
     },
 
@@ -851,7 +893,7 @@ export const enhancedApi = {
       financial_statements_type: string;
     }) {
       return fetchWithLoading(
-        "/analysis/suggest-standards",
+        "/suggest-standards",
         {
           method: "POST",
           body: JSON.stringify(metadata),
@@ -860,12 +902,21 @@ export const enhancedApi = {
         true
       );
     },
+
+    async startChecklistProcessing(documentId: string) {
+      return fetchWithLoading(
+        `/documents/${documentId}/start-checklist-processing`,
+        { method: "POST" },
+        "Starting checklist processing",
+        true
+      );
+    },
   },
 
   documents: {
     async get(documentId: string) {
       return fetchWithLoading(
-        `/analysis/documents/${documentId}`,
+        `/documents/${documentId}`,
         { method: "GET" },
         "Loading document details",
         true
@@ -874,7 +925,7 @@ export const enhancedApi = {
 
     async list() {
       return fetchWithLoading(
-        "/analysis/documents",
+        "/documents",
         { method: "GET" },
         "Loading documents",
         true
@@ -887,7 +938,7 @@ export const enhancedApi = {
       formData.append("processing_mode", processingMode);
 
       return fetchWithLoading(
-        "/analysis/upload",
+        "/upload",
         { method: "POST", body: formData },
         "Uploading document",
         true
@@ -898,7 +949,7 @@ export const enhancedApi = {
   checklist: {
     async get(documentId: string) {
       return fetchWithLoading(
-        `/analysis/documents/${documentId}`,
+        `/documents/${documentId}`,
         { method: "GET" },
         "Loading compliance checklist",
         true
@@ -910,7 +961,7 @@ export const enhancedApi = {
       comments?: string;
     }) {
       return fetchWithLoading(
-        `/analysis/documents/${documentId}/items/${itemId}`,
+        `/documents/${documentId}/items/${itemId}`,
         {
           method: "PATCH",
           body: JSON.stringify(data),
@@ -940,7 +991,7 @@ export const enhancedApi = {
       last_document_id?: string; 
     }) {
       return fetchWithLoading(
-        "/analysis/sessions/create",
+        "/sessions/create",
         {
           method: "POST",
           body: JSON.stringify(data),
@@ -952,7 +1003,7 @@ export const enhancedApi = {
 
     async list(limit = 50, offset = 0) {
       return fetchWithLoading(
-        `/analysis/sessions/list?limit=${limit}&offset=${offset}`,
+        `/sessions/list?limit=${limit}&offset=${offset}`,
         { method: "GET" },
         "Loading sessions",
         true
@@ -961,7 +1012,7 @@ export const enhancedApi = {
 
     async get(sessionId: string) {
       return fetchWithLoading(
-        `/analysis/sessions/${sessionId}`,
+        `/sessions/${sessionId}`,
         { method: "GET" },
         "Loading session",
         true
@@ -976,7 +1027,7 @@ export const enhancedApi = {
       last_document_id?: string;
     }) {
       return fetchWithLoading(
-        `/analysis/sessions/${sessionId}`,
+        `/sessions/${sessionId}`,
         {
           method: "PUT",
           body: JSON.stringify(data),
@@ -988,7 +1039,7 @@ export const enhancedApi = {
 
     async delete(sessionId: string) {
       return fetchWithLoading(
-        `/analysis/sessions/${sessionId}`,
+        `/sessions/${sessionId}`,
         { method: "DELETE" },
         "Deleting session",
         true
@@ -997,7 +1048,7 @@ export const enhancedApi = {
 
     async archive(sessionId: string) {
       return fetchWithLoading(
-        `/analysis/sessions/${sessionId}/archive`,
+        `/sessions/${sessionId}/archive`,
         { method: "POST" },
         "Archiving session",
         true
@@ -1008,7 +1059,7 @@ export const enhancedApi = {
   health: {
     async check() {
       return fetchWithLoading(
-        "/analysis/health",
+        "/health",
         { method: "GET" },
         "Checking system health",
         false
@@ -1017,7 +1068,7 @@ export const enhancedApi = {
 
     async detailed() {
       return fetchWithLoading(
-        "/analysis/health/detailed",
+        "/health/detailed",
         { method: "GET" },
         "Getting detailed health status",
         true

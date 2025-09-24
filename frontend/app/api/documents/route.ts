@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 
     const formData = await request.formData();
     
-    const response = await fetch(`${backendUrl}/api/v1/analysis/upload`, {
+    const response = await fetch(`${backendUrl}/api/v1/upload`, {
       method: 'POST',
       body: formData,
     });

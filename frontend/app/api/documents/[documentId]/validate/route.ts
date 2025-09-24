@@ -18,7 +18,7 @@ export async function POST(
     }
 
     // Validate document with backend
-    const response = await fetch(`${apiUrl}/analysis/documents/${documentId}/validate`, {
+    const response = await fetch(`${apiUrl}/documents/${documentId}/validate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
