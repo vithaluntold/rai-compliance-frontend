@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
+# NO PSUTIL IMPORT - DEPLOYMENT FIX
 from fastapi import (
     APIRouter,
     BackgroundTasks,
