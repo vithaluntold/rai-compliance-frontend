@@ -799,8 +799,10 @@ toast({
         setFrameworkError(null);
 
         try {
+          console.log("🔍 Attempting to load frameworks...");
           trackApiCall('analysis.getFrameworks');
           const response = await api.analysis.getFrameworks();
+          console.log("📦 Frameworks API response:", response);
 
           if (
             response &&
@@ -850,6 +852,7 @@ toast({
             );
           }
         } catch (error: unknown) {
+          console.error("❌ Frameworks API error:", error);
           const errorMessage = `Failed to load frameworks: ${error instanceof Error ? error.message : "Unknown error"}`;
           setFrameworkError(errorMessage);
 

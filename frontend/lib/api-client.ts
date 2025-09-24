@@ -615,14 +615,6 @@ export const api = {
         throw error;
       }
     },
-    getFrameworks: async (): Promise<Record<string, unknown>> => {
-      try {
-        return await fetchApi("/frameworks");
-      } catch (error) {
-        // Internal logging: Error getting frameworks
-        throw error;
-      }
-    },
     getFrameworkChecklist: async (framework: string, standard: string): Promise<Record<string, unknown>> => {
       try {
         return await fetchApi(`/checklist/${framework}/${standard}`);
@@ -736,6 +728,14 @@ export const api = {
           method: "POST",
         },
       );
+    },
+    getFrameworks: async (): Promise<Record<string, unknown>> => {
+      try {
+        return await fetchApi("/frameworks");
+      } catch (error) {
+        // Internal logging: Error getting frameworks
+        throw error;
+      }
     },
   },
   checklist: {
