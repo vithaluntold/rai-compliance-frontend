@@ -1,13 +1,28 @@
 #!/bin/bash
 set -e
 
-echo "Starting custom build script..."
+echo "=== FORCE Python Version Check ==="
+echo "Current Python version:"
+python --version
+python3 --version || echo "python3 not available"
 
-# Upgrade pip first
-python -m pip install --upgrade pip
+# Check if we're getting the wrong Python version
+if python --version | grep -q "3.13"; then
+    echo "ERROR: Python 3.13 detected, need Python 3.11!"
+    echo "Available Python versions:"
+    ls -la /usr/bin/python* 2>/dev/null || echo "No python binaries in /usr/bin/"
+    
+    # Try to find Python 3.11
+    if command -v python3.11 &> /dev/null; then
+        echo "Found python3.11, using it instead"
+        alias python=python3.11
+        alias python3=python3.11
+    else
+        echo "WARNING: Python 3.11 not found, continuing with available version"
+    fi
+fi
 
-# Install psutil explicitly first
-echo "Installing psutil..."
+echo "=== Installing Requirements ==="
 python -m pip install psutil==5.9.5
 
 # Verify psutil installation
