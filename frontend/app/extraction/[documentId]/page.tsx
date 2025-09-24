@@ -5,7 +5,7 @@ import {useParams, useRouter} from "next/navigation";
 import Image from "next/image";
 import {Button} from "@/components/ui/button";
 import {Progress} from "@/components/ui/progress";
-import {enhancedApi, setLoadingManager} from "@/lib/enhanced-api-client";
+import {enhancedApi, setLoadingManager} from "@/lib/api-client";
 import {useToast} from "@/components/ui/use-toast";
 import {useLoading} from "@/contexts/loading-context";
 import {ProcessingLogs, useProcessingLogs} from "@/components/ui/processing-logs";

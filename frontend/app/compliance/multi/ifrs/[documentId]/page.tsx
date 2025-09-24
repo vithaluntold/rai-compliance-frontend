@@ -7,7 +7,7 @@ import {Button} from "@/components/ui/button";
 import {Progress} from "@/components/ui/progress";
 import {Textarea} from "@/components/ui/textarea";
 import {useToast} from "@/components/ui/use-toast";
-import {enhancedApi, setLoadingManager} from "@/lib/enhanced-api-client";
+import {enhancedApi, setLoadingManager} from "@/lib/api-client";
 import {useLoading} from "@/contexts/loading-context";
 import {ArrowLeft, Download, Loader2, Activity, Clock} from "lucide-react";
 import {cn} from "@/lib/utils";
@@ -200,7 +200,7 @@ function ComplianceItem({
             <div className="overflow-x-auto border rounded-lg">
               <table className="min-w-full divide-y divide-gray-200 text-sm">
                 <thead>
-                  <tr className="bg-gray-50">
+                  <tr className="bg-white border-b border-gray-200">
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                       Reference
                     </th>
@@ -223,7 +223,7 @@ function ComplianceItem({
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {evidenceData.map((evidence, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50">
+                    <tr key={idx} className="hover:bg-gray-100">
                       <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                         {evidence.reference}
                       </td>
@@ -273,7 +273,7 @@ function ComplianceItem({
               }
             />
           ) : (
-            <div className="bg-gray-50 p-4 rounded-md text-sm text-gray-700 min-h-[100px]">
+            <div className="bg-white border border-gray-200 p-4 rounded-md text-sm text-gray-700 min-h-[100px]">
               {item.comments || "No comments added yet"}
             </div>
           )}
@@ -317,7 +317,7 @@ export default function CompliancePage() {
         setLastApiCall(new Date().toLocaleTimeString());
         setProcessingStage("Loading compliance checklist");
         
-        const result = await enhancedApi.compliance.getChecklist(documentId);
+        const result = await enhancedApi.checklist.get(documentId);
 
         // Check for a final status
         if (result.status === "COMPLETED" || result.status === "FAILED") {
@@ -511,7 +511,7 @@ export default function CompliancePage() {
             </p>
             
             {/* API Activity Panel */}
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6 space-y-3">
+            <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6 space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center space-x-2">
                   <Activity className="h-4 w-4 text-green-600" />
