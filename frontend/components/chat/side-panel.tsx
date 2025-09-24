@@ -1137,6 +1137,7 @@ export function SidePanel({
     if (!hasComplianceSections(chatState.analysisResults)) return null;
     
     const results = chatState.analysisResults as ComplianceResults;
+    
     const totalItems = results.sections?.reduce(
         (total: number, section: ComplianceSection) => total + (section.items?.length || 0),
         0,
