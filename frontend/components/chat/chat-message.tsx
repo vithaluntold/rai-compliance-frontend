@@ -434,6 +434,7 @@ export function ChatMessage({
                   <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
                     <Button
                       onClick={(e) => {
+                        alert("BUTTON CLICKED! onGoToResults exists: " + !!onGoToResults + ", documentId: " + (message.documentId || 'fallback-id'));
                         e.preventDefault();
                         e.stopPropagation();
                         
@@ -442,7 +443,8 @@ export function ChatMessage({
                           onGoToResults(message.documentId || 'fallback-id');
                         }
                       }}
-                      className="bg-[#0087d9] hover:bg-blue-700 text-white h-8 px-4 cursor-pointer"
+                      className="bg-[#0087d9] hover:bg-blue-700 text-white h-8 px-4 cursor-pointer !important"
+                      style={{ cursor: 'pointer !important' }}
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
                       View Detailed Results
