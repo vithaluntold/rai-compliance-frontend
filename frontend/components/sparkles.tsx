@@ -26,10 +26,12 @@ export const SparklesCore = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mousePosition = useMousePosition();
   const [dimensions, setDimensions] = useState({ width: 1200, height: 800 });
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    setIsClient(true);
     setDimensions({
       width: window.innerWidth,
       height: window.innerHeight,
@@ -139,6 +141,11 @@ export const SparklesCore = ({
     mousePosition.x,
     mousePosition.y,
   ]);
+
+  // Don't render anything during SSR to prevent hydration mismatches
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <canvas

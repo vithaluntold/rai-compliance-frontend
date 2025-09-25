@@ -228,6 +228,11 @@ toast({
   };
 
   const formatDate = (dateString: string) => {
+    // Only format dates on client side to prevent hydration mismatches
+    if (typeof window === 'undefined') {
+      return dateString; // Return raw date during SSR
+    }
+    
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = now.getTime() - date.getTime();
