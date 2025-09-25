@@ -153,6 +153,7 @@ interface SidePanelProps {
   onClearAllStandards?: () => void;
   onFrameworkContinue?: () => void;
   onFrameworkBack?: () => void;
+  onCustomInstructionsChange?: (instructions: string) => void;
   // Analysis mode props
   onAnalysisModeToggle?: (mode: "zap" | "comprehensive") => void;
 }
@@ -180,6 +181,7 @@ export function SidePanel({
   onClearAllStandards,
   onFrameworkContinue,
   onFrameworkBack,
+  onCustomInstructionsChange,
 }: SidePanelProps) {
   // Connect to global theme context (theme automatically applied to document)
   useTheme();
@@ -866,6 +868,7 @@ export function SidePanel({
             frameworks={frameworks || []}
             selectedFramework={selectedFramework || ""}
             selectedStandards={selectedStandards || []}
+            customInstructions={chatState.customInstructions || ""}
             isLoading={isFrameworkLoading || false}
             isSubmitting={isFrameworkSubmitting || false}
             error={frameworkError || null}
@@ -876,6 +879,7 @@ export function SidePanel({
             onClearAll={onClearAllStandards || (() => {})}
             onContinue={onFrameworkContinue || (() => {})}
             onBack={onFrameworkBack || (() => {})}
+            onCustomInstructionsChange={onCustomInstructionsChange || (() => {})}
             // Disable editing during analysis
             disabled={chatState.currentStep?.id === "analysis"}
           />

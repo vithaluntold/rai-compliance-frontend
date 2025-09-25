@@ -162,6 +162,7 @@ export interface ChatState {
   selectedStandards: string[];
   aiSuggestedStandards: string[]; // Track AI suggestions separately
   specialInstructions?: string;
+  customInstructions?: string; // User-provided custom analysis instructions
   analysisResults: unknown | null;
   isProcessing: boolean;
   // Enhanced geographical processing mode
@@ -322,20 +323,43 @@ export function ChatInterface(): React.JSX.Element {
 
   // Helper function to create completion messages with proper documentId
   const addCompletionMessage = useCallback((content: string | React.ReactNode, documentId?: string | null, metadata?: Record<string, unknown>) => {
+    // 🔧 FIX: Ensure consistent documentId - validate and log for debugging
+    const resolvedDocumentId = documentId || chatState.documentId;
+    
+    // Validate documentId exists and is valid
+    if (!resolvedDocumentId || typeof resolvedDocumentId !== 'string' || resolvedDocumentId.trim() === '') {
+      // Don't add navigation button for invalid documentIds
+      addLog('warning', 'Navigation', `Invalid documentId in completion message: ${documentId || 'null'}`);
+      // Don't add navigation button for invalid documentIds
+      const completionMessage: Message = {
+        id: generateUniqueId(),
+        type: "system",
+        content,
+        timestamp: new Date(),
+        // No documentId = no navigation button
+        metadata: { ...metadata },
+      };
+      setMessages((prev) => [...prev, completionMessage]);
+      return completionMessage.id;
+    }
+
+    // Valid documentId - create message with navigation capability
     const completionMessage: Message = {
       id: generateUniqueId(),
       type: "system",
       content,
       timestamp: new Date(),
-      documentId: documentId || chatState.documentId, // Direct field for button rendering
+      documentId: resolvedDocumentId.trim(), // Always trim for consistency
+      showResultsButton: true, // Explicitly enable the results button
       metadata: { 
         ...metadata,
-        documentId: documentId || chatState.documentId // Metadata field for compatibility
+        documentId: resolvedDocumentId.trim(),
+        analysisResults: chatState.analysisResults // Include current results for consistency check
       },
     };
     setMessages((prev) => [...prev, completionMessage]);
     return completionMessage.id;
-  }, [chatState.documentId]);
+  }, [chatState.documentId, chatState.analysisResults, addLog]);
 
   // INITIALIZATION LOGIC - Always start fresh unless explicitly loading a session or document
   useEffect(() => {
@@ -1491,10 +1515,14 @@ toast({
             const resultsSummary = generateResultsSummary(fullResults);
             addMessage(resultsSummary, "system");
             
+            // 🔧 FIX: Ensure consistent documentId for navigation
+            const definiteDocumentId = fullResults.document_id || documentId;
+            
             // Add completion message with action button
             addCompletionMessage(
               "**Smart Categorization Analysis Complete!**\n\nYour compliance analysis has been successfully completed using advanced AI categorization technology. You can now review the detailed results, including compliance scores, identified issues, and intelligent categorization insights.",
-              documentId
+              definiteDocumentId,
+              { analysisResults: fullResults }
             );
             moveToNextStep("results");
             return;
@@ -2417,6 +2445,13 @@ You can review and edit these details in the side panel before proceeding to fra
     }
   };
 
+  const handleCustomInstructionsChange = (instructions: string) => {
+    setChatState((prev) => ({
+      ...prev,
+      customInstructions: instructions,
+    }));
+  };
+
   const handleEditFrameworkSelection = () => {
     // Allow editing of completed framework selection
     moveToNextStep("framework-selection");
@@ -2518,7 +2553,7 @@ You can review and edit these details in the side panel before proceeding to fra
       const requestData = {
         framework: selectedFramework,
         standards: selectedStandards,
-        specialInstructions: specialInstructions || "",
+        specialInstructions: chatState.customInstructions || specialInstructions || "",  // Use custom instructions first, fallback to specialInstructions
         extensiveSearch: false, // Can add this as a toggle in the future
         processingMode: chatState.processingMode || "enhanced",
       };
@@ -2631,6 +2666,9 @@ You can review and edit these details in the side panel before proceeding to fra
             const resultsSummary = generateResultsSummary(fullResults);
             addMessage(resultsSummary, "system");
 
+            // 🔧 FIX: Use definitive documentId from fullResults - this ensures consistency between stored results and navigation
+            const definiteDocumentId = fullResults.document_id || chatState.documentId;
+            
             // Add completion message with action button
             addCompletionMessage(
               `✅ **Smart Categorization Analysis Complete!**
@@ -2647,7 +2685,8 @@ You can review and edit these details in the side panel before proceeding to fra
 • Risk assessments and findings
 
 **Click below to review your professional compliance report.**`,
-              fullResults.document_id || chatState.documentId
+              definiteDocumentId, // Use the same documentId as the stored results
+              { analysisResults: fullResults } // Pass the results for validation
             );
 
             // Move to results step
@@ -3341,6 +3380,7 @@ You can expand each section below to review detailed findings, evidence, and sug
             onClearAllStandards={handleClearAllStandards}
             onFrameworkContinue={handleFrameworkContinue}
             onFrameworkBack={handleFrameworkBack}
+            onCustomInstructionsChange={handleCustomInstructionsChange}
           />
           </>
         )}

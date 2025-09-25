@@ -29,6 +29,7 @@ from services.checklist_utils import (
     is_standard_available,
     load_checklist,
 )
+from services.persistent_storage import get_persistent_storage
 from services.document_chunker import document_chunker
 from services.smart_metadata_extractor import SmartMetadataExtractor
 from services.vector_store import generate_document_id, get_vector_store
@@ -147,12 +148,33 @@ smart_metadata_extractor = SmartMetadataExtractor()
 
 
 def save_analysis_results(document_id: str, results: Dict[str, Any]) -> None:
-    """Save analysis results to JSON file."""
+    """Save analysis results to JSON file and persistent storage."""
     try:
+        # Save to traditional filesystem (for backward compatibility)
         results_path = ANALYSIS_RESULTS_DIR / f"{document_id}.json"
         with open(results_path, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2, ensure_ascii=False)
         logger.info(f"Saved analysis results for document {document_id}")
+        
+        # 🔧 FIX: Also save to persistent storage (survives Render restarts)
+        try:
+            import asyncio
+            storage = get_persistent_storage()
+            
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                success = loop.run_until_complete(storage.save_analysis_results(document_id, results))
+                if success:
+                    logger.info(f"✅ Analysis results saved to persistent storage: {document_id}")
+                else:
+                    logger.warning(f"⚠️ Failed to save analysis results to persistent storage: {document_id}")
+            finally:
+                loop.close()
+                
+        except Exception as e:
+            logger.warning(f"⚠️ Error saving to persistent storage: {e}")
+        
     except Exception as e:
         logger.error(f"Error saving analysis results: {str(e)}")
         raise
@@ -160,10 +182,31 @@ def save_analysis_results(document_id: str, results: Dict[str, Any]) -> None:
 
 # Utility to get the file path for a document_id, regardless of extension
 def get_document_file_path(document_id: str) -> Optional[Path]:
+    # First check local filesystem (for backward compatibility)
     for ext in [".pdf", ".docx"]:
         candidate = UPLOADS_DIR / f"{document_id}{ext}"
         if candidate.exists():
             return candidate
+    
+    # 🔧 FIX: If not found locally, try to restore from persistent storage
+    try:
+        import asyncio
+        storage = get_persistent_storage()
+        
+        # Use asyncio to run the async function in sync context
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            temp_file = loop.run_until_complete(storage.write_file_to_temp(document_id))
+            if temp_file and temp_file.exists():
+                logger.info(f"✅ Restored file from persistent storage: {document_id} -> {temp_file}")
+                return temp_file
+        finally:
+            loop.close()
+            
+    except Exception as e:
+        logger.warning(f"⚠️ Failed to restore file from persistent storage: {document_id}: {e}")
+    
     return None
 
 
@@ -633,13 +676,30 @@ async def upload_document(
         document_id = generate_document_id()
         logger.info(f"Processing document upload with ID: {document_id}")
 
-        # Save uploaded file with original extension
+        # 🔧 FIX: Save uploaded file using persistent storage (works on Render)
         upload_ext = f".{ext}"
         upload_path = UPLOADS_DIR / f"{document_id}{upload_ext}"
+        
         try:
+            # Save to traditional filesystem (for backward compatibility)
             with open(upload_path, "wb") as f:
                 f.write(content)
             logger.info(f"Saved uploaded file to: {upload_path}")
+            
+            # 🔧 ALSO save to persistent database storage (survives Render restarts)
+            storage = get_persistent_storage()
+            success = await storage.save_uploaded_file(
+                document_id=document_id,
+                file_path=upload_path,
+                filename=file.filename,
+                mime_type=file.content_type
+            )
+            
+            if success:
+                logger.info(f"✅ File saved to persistent storage: {document_id}")
+            else:
+                logger.warning(f"⚠️ Failed to save to persistent storage: {document_id}")
+                
         except Exception as e:
             logger.error(f"Error saving uploaded file: {str(e)}")
             response = {
