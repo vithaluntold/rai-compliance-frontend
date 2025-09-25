@@ -951,13 +951,58 @@ toast({
           addSmartWorkflowMessage(progressData.percentage);
         }
 
-        // If analysis is completed, stop polling and check for results
+        // If analysis is completed, stop polling and load the full results with sections
         if (progressData.status === "COMPLETED") {
           clearInterval(progressInterval!);
-          // Give a small delay to ensure results are saved
-          setTimeout(() => {
+          // Give a small delay to ensure results are saved, then load full results
+          setTimeout(async () => {
             if (chatState.documentId) {
-              pollForMetadata(chatState.documentId);
+              try {
+                // Load the complete compliance results with sections data
+                const analysisResults = await api.analysis.getResults(chatState.documentId);
+                
+                // Update chat state with the results
+                setChatState((prev) => ({ 
+                  ...prev, 
+                  isProcessing: false,
+                  analysisResults: analysisResults
+                }));
+                
+                // Show completion message with results available
+                addMessage(
+                  "🎉 **Smart Categorization Analysis Complete!**\n\nYour compliance analysis has been successfully completed using advanced AI categorization technology. You can now review the detailed results, including compliance scores, identified issues, and intelligent categorization insights.",
+                  "system",
+                  chatState.documentId
+                );
+                
+                // Also update metadata if available
+                if (analysisResults.metadata) {
+                  setChatState((prev) => ({ 
+                    ...prev, 
+                    extractedMetadata: analysisResults.metadata
+                  }));
+                }
+                
+                addLog(
+                  'success',
+                  'Analysis',
+                  'Compliance analysis completed successfully',
+                  { 
+                    documentId: chatState.documentId,
+                    sectionsCount: analysisResults.sections?.length || 0,
+                    status: analysisResults.status
+                  }
+                );
+              } catch (error) {
+                // Fallback to metadata polling if results loading fails
+                addLog(
+                  'warning', 
+                  'Analysis',
+                  'Failed to load complete results, falling back to metadata polling',
+                  { error: error instanceof Error ? error.message : 'Unknown error' }
+                );
+                pollForMetadata(chatState.documentId);
+              }
             }
           }, 2000);
         } else if (progressData.status === "FAILED") {
