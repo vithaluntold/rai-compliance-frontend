@@ -479,6 +479,28 @@ export function ChatMessage({
                   </div>
                 )}
 
+              {/* ALWAYS VISIBLE TEST BUTTON - NO CONDITIONS */}
+              <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded">
+                <h3 className="text-red-800 font-bold text-sm mb-2">🚨 DEBUGGING SECTION 🚨</h3>
+                <button
+                  onClick={() => {
+                    alert('🟢 ALWAYS VISIBLE BUTTON WORKS!');
+                    console.log('🟢 Always visible button clicked');
+                  }}
+                  className="bg-green-500 hover:bg-green-700 text-white px-3 py-1 rounded mr-2"
+                >
+                  TEST BUTTON (ALWAYS VISIBLE)
+                </button>
+                
+                <div className="mt-2 text-xs text-red-700">
+                  Message Type: {message.type}<br/>
+                  Has DocumentId: {message.documentId ? 'YES' : 'NO'}<br/>
+                  DocumentId Value: {message.documentId || 'NONE'}<br/>
+                  onGoToResults Available: {onGoToResults ? 'YES' : 'NO'}<br/>
+                  Condition Check: {message.documentId && onGoToResults ? 'SHOULD SHOW BUTTON' : 'BUTTON HIDDEN'}
+                </div>
+              </div>
+
               {/* Debug info for any message with documentId */}
               {message.documentId && (
                 <div className="mt-2 text-xs text-gray-500 bg-gray-100 p-2 rounded">
