@@ -3,12 +3,7 @@ services:
     name: rai-compliance-backend
     env: python
     plan: starter
-    buildCommand: |
-      echo "=== Current directory and files ==="
-      pwd
-      ls -la
-      echo "=== Installing from render-backend requirements.txt ==="
-      pip install --no-cache-dir -r requirements.txt
+    buildCommand: pip install --no-cache-dir -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: AZURE_OPENAI_API_KEY
