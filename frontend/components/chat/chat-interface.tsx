@@ -2809,13 +2809,6 @@ You can review and edit these details in the side panel before proceeding to fra
             setMessages((prev) => [...prev, completionMessage]);
             moveToNextStep("results");
           }
-
-          // Navigate to dedicated results page after a short delay
-          setTimeout(() => {
-            if (chatState.documentId) {
-              router.push(`/results/${chatState.documentId}`);
-            }
-          }, 2000);
         } else if (progressData.status === "FRAMEWORK_SELECTED") {
           // Framework selected, need to start compliance analysis
           
