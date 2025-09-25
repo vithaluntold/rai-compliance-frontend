@@ -1499,8 +1499,6 @@ toast({
               analysisResults: statusResponse,
             }));
             
-            addMessage("Smart categorization analysis completed! Click the button below to view results.", "system");
-            
             const completionMessage: Message = {
               id: generateUniqueId(),
               type: "system",
@@ -2686,11 +2684,6 @@ You can review and edit these details in the side panel before proceeding to fra
               isProcessing: false,
               analysisResults: progressData,
             }));
-
-            addMessage(
-              "✅ Smart categorization analysis completed! Click the button below to view detailed results.",
-              "system"
-            );
 
             const completionMessage: Message = {
               id: generateUniqueId(),
