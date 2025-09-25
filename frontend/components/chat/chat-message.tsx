@@ -429,44 +429,30 @@ export function ChatMessage({
                 </div>
               )}
 
-              {/* Results Button for completed analysis - ALWAYS ACTIVE */}
-              {onGoToResults && (
+              {/* Results Button for completed analysis */}
+              {message.documentId && onGoToResults && (
                   <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
                     <Button
                       onClick={(e) => {
-                        alert("BUTTON CLICKED! onGoToResults exists: " + !!onGoToResults + ", documentId: " + (message.documentId || 'fallback-id'));
                         e.preventDefault();
                         e.stopPropagation();
                         
-                        // Always call navigation - NO CONDITIONS
+                        // Validate documentId before navigation
+                        if (!message.documentId || typeof message.documentId !== 'string' || message.documentId.trim() === '') {
+                          return;
+                        }
+                        
                         if (onGoToResults) {
-                          onGoToResults(message.documentId || 'fallback-id');
+                          onGoToResults(message.documentId);
                         }
                       }}
-                      className="bg-[#0087d9] hover:bg-blue-700 text-white h-8 px-4 cursor-pointer !important"
-                      style={{ cursor: 'pointer !important' }}
+                      className="bg-[#0087d9] hover:bg-blue-700 text-white h-8 px-4"
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
                       View Detailed Results
                     </Button>
                   </div>
                 )}
-
-              {/* PERMANENT DEBUG TEST BUTTON - ALWAYS SHOWS */}
-              <div className="mt-4 pt-3 border-t border-red-500">
-                <Button
-                  onClick={() => {
-                    alert("PERMANENT TEST BUTTON CLICKED! Message ID: " + message.id);
-                    if (onGoToResults) {
-                      onGoToResults('test-doc-id');
-                    }
-                  }}
-                  className="bg-red-500 hover:bg-red-700 text-white h-8 px-4"
-                  style={{ cursor: 'pointer' }}
-                >
-                  🚨 PERMANENT TEST BUTTON 🚨
-                </Button>
-              </div>
 
               {renderMetadata()}
             </div>

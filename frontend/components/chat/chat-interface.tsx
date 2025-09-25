@@ -1499,6 +1499,8 @@ toast({
               analysisResults: statusResponse,
             }));
             
+            addMessage("Smart categorization analysis completed! Click the button below to view results.", "system");
+            
             const completionMessage: Message = {
               id: generateUniqueId(),
               type: "system",
@@ -2438,21 +2440,32 @@ You can review and edit these details in the side panel before proceeding to fra
     addLog('info', 'Suggestion', `Suggestion clicked: ${suggestion}`);
   };
 
-  // Handle navigation to results page - ALWAYS NAVIGATE
+  // Handle navigation to results page
   const handleGoToResults = (documentId: string) => {
-    // FORCE navigation regardless of conditions
+    // Validate document ID
+    if (!documentId || typeof documentId !== 'string' || documentId.trim() === '') {
+      toast({
+        title: "Navigation Error",
+        description: "Invalid document ID. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
-      // Use documentId or fallback - NO VALIDATION
-      const targetUrl = `/results/${documentId || 'fallback-id'}`;
+      const targetUrl = `/results/${documentId.trim()}`;
       router.push(targetUrl);
       
       toast({
-        title: "Loading Results", 
+        title: "Loading Results",
         description: "Redirecting to detailed compliance report...",
       });
     } catch {
-      // Even if navigation fails, still attempt with fallback
-      router.push('/results/fallback-id');
+      toast({
+        title: "Navigation Failed", 
+        description: "Could not navigate to results page. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -2673,6 +2686,11 @@ You can review and edit these details in the side panel before proceeding to fra
               isProcessing: false,
               analysisResults: progressData,
             }));
+
+            addMessage(
+              "✅ Smart categorization analysis completed! Click the button below to view detailed results.",
+              "system"
+            );
 
             const completionMessage: Message = {
               id: generateUniqueId(),
