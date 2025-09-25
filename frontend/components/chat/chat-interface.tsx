@@ -982,7 +982,8 @@ toast({
                 
                 // Show completion message with results available
                 addCompletionMessage(
-                  "🎉 **Smart Categorization Analysis Complete!**\n\nYour compliance analysis has been successfully completed using advanced AI categorization technology. You can now review the detailed results, including compliance scores, identified issues, and intelligent categorization insights."
+                  "🎉 **Smart Categorization Analysis Complete!**\n\nYour compliance analysis has been successfully completed using advanced AI categorization technology. You can now review the detailed results, including compliance scores, identified issues, and intelligent categorization insights.",
+                  chatState.documentId
                 );
                 
                 // Also update metadata if available
@@ -2631,11 +2632,8 @@ You can review and edit these details in the side panel before proceeding to fra
             addMessage(resultsSummary, "system");
 
             // Add completion message with action button
-            const completionMessage: Message = {
-              id: generateUniqueId(),
-              type: "system",
-              content:
-                `✅ **Smart Categorization Analysis Complete!**
+            addCompletionMessage(
+              `✅ **Smart Categorization Analysis Complete!**
 
 • **Analysis Summary:**
 • **Standards Processed:** ${fullResults.sections?.length || 'Multiple'} compliance sections
@@ -2649,12 +2647,8 @@ You can review and edit these details in the side panel before proceeding to fra
 • Risk assessments and findings
 
 **Click below to review your professional compliance report.**`,
-              timestamp: new Date(),
-              showResultsButton: true,
-              documentId: chatState.documentId!,
-            };
-
-            setMessages((prev) => [...prev, completionMessage]);
+              fullResults.document_id || chatState.documentId
+            );
 
             // Move to results step
             moveToNextStep("results");
@@ -2693,17 +2687,10 @@ You can review and edit these details in the side panel before proceeding to fra
               "system"
             );
 
-            const completionMessage: Message = {
-              id: generateUniqueId(),
-              type: "system",
-              content:
-                "🎉 **Smart Categorization Analysis Complete!**\n\nYour compliance analysis has been successfully completed using advanced AI categorization technology. You can now review the detailed results, including compliance scores, identified issues, and intelligent categorization insights.",
-              timestamp: new Date(),
-              showResultsButton: true,
-              documentId: chatState.documentId!,
-            };
-
-            setMessages((prev) => [...prev, completionMessage]);
+            addCompletionMessage(
+              "🎉 **Smart Categorization Analysis Complete!**\n\nYour compliance analysis has been successfully completed using advanced AI categorization technology. You can now review the detailed results, including compliance scores, identified issues, and intelligent categorization insights.",
+              progressData.document_id || chatState.documentId
+            );
             moveToNextStep("results");
 
             // TODO: Update session when backend sessions API is implemented
@@ -2795,16 +2782,10 @@ You can review and edit these details in the side panel before proceeding to fra
               "system",
             );
 
-            const completionMessage: Message = {
-              id: generateUniqueId(),
-              type: "system",
-              content: "Analysis completed with some issues. Review available results for more details.",
-              timestamp: new Date(),
-              showResultsButton: true,
-              documentId: chatState.documentId!,
-            };
-
-            setMessages((prev) => [...prev, completionMessage]);
+            addCompletionMessage(
+              "Analysis completed with some issues. Review available results for more details.",
+              progressData.document_id || chatState.documentId
+            );
             moveToNextStep("results");
           }
         } else if (progressData.status === "FRAMEWORK_SELECTED") {
