@@ -433,22 +433,48 @@ export function ChatMessage({
               {message.documentId && onGoToResults && (
                   <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
                     <Button
-                      onClick={() => {
-                        console.log('🔵 Button clicked! documentId:', message.documentId);
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🔵 BUTTON CLICKED! documentId:', message.documentId);
+                        console.log('🔵 onGoToResults exists:', !!onGoToResults);
+                        alert('Button clicked! Check console for details.');
                         if (onGoToResults) {
                           console.log('🔵 Calling onGoToResults function');
                           onGoToResults(message.documentId!);
                         } else {
                           console.error('❌ onGoToResults function not provided');
+                          alert('onGoToResults function is missing!');
                         }
                       }}
-                      className="bg-[#0087d9] hover:bg-blue-700 text-white h-8 px-2 cursor-pointer"
+                      onMouseEnter={() => console.log('🔵 Button hover detected')}
+                      className="bg-[#0087d9] hover:bg-blue-700 text-white h-8 px-2 cursor-pointer relative z-50"
+                      style={{ pointerEvents: 'auto' }}
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
                       View Detailed Results
                     </Button>
+                    
+                    {/* Alternative backup button */}
+                    <button
+                      onClick={() => {
+                        console.log('🟢 BACKUP BUTTON CLICKED!');
+                        alert('Backup button works!');
+                        if (onGoToResults && message.documentId) {
+                          onGoToResults(message.documentId);
+                        }
+                      }}
+                      className="ml-2 bg-red-500 hover:bg-red-700 text-white px-2 py-1 text-xs rounded"
+                    >
+                      BACKUP
+                    </button>
+                    
                     <div className="mt-2 text-xs text-green-600 font-bold">
                       DEBUG MODE: Button forced active for testing
+                    </div>
+                    <div className="mt-1 text-xs text-blue-600">
+                      DocumentId: {message.documentId}<br/>
+                      onGoToResults: {onGoToResults ? 'Available' : 'Missing'}
                     </div>
                   </div>
                 )}
