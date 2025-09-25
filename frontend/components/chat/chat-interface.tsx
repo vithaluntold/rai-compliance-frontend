@@ -2445,14 +2445,23 @@ You can review and edit these details in the side panel before proceeding to fra
 
   // Handle navigation to results page
   const handleGoToResults = (documentId: string) => {
+    console.log('🚀 handleGoToResults called with documentId:', documentId);
+    
     if (!documentId) {
+      console.error('❌ No document ID provided');
       alert('Error: No document ID available. Please try refreshing the page.');
       return;
     }
     
+    console.log('✅ Document ID is valid, attempting navigation to:', `/results/${documentId}`);
+    
     try {
-      router.push(`/results/${documentId}`);
-    } catch {
+      const targetUrl = `/results/${documentId}`;
+      console.log('🔄 Calling router.push with:', targetUrl);
+      router.push(targetUrl);
+      console.log('✅ router.push called successfully');
+    } catch (error) {
+      console.error('❌ Error in router.push:', error);
       alert('Error navigating to results page. Please try again.');
     }
   };

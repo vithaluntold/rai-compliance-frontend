@@ -433,7 +433,15 @@ export function ChatMessage({
               {message.documentId && onGoToResults && (
                   <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
                     <Button
-                      onClick={() => onGoToResults(message.documentId!)}
+                      onClick={() => {
+                        console.log('🔵 Button clicked! documentId:', message.documentId);
+                        if (onGoToResults) {
+                          console.log('🔵 Calling onGoToResults function');
+                          onGoToResults(message.documentId!);
+                        } else {
+                          console.error('❌ onGoToResults function not provided');
+                        }
+                      }}
                       className="bg-[#0087d9] hover:bg-blue-700 text-white h-8 px-2 cursor-pointer"
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
