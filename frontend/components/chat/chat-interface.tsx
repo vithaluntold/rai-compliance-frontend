@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -320,6 +320,23 @@ export function ChatInterface(): React.JSX.Element {
     [],
   );
 
+  // Helper function to create completion messages with proper documentId
+  const addCompletionMessage = useCallback((content: string | React.ReactNode, documentId?: string | null, metadata?: Record<string, unknown>) => {
+    const completionMessage: Message = {
+      id: generateUniqueId(),
+      type: "system",
+      content,
+      timestamp: new Date(),
+      documentId: documentId || chatState.documentId, // Direct field for button rendering
+      metadata: { 
+        ...metadata,
+        documentId: documentId || chatState.documentId // Metadata field for compatibility
+      },
+    };
+    setMessages((prev) => [...prev, completionMessage]);
+    return completionMessage.id;
+  }, [chatState.documentId]);
+
   // INITIALIZATION LOGIC - Always start fresh unless explicitly loading a session or document
   useEffect(() => {
     const resetParameter = searchParams.get('reset');
@@ -551,13 +568,11 @@ export function ChatInterface(): React.JSX.Element {
                   return "";
                 };
 
-                setMessages(prev => [...prev, {
-                  id: generateUniqueId(),
-                  content: `📊 **Smart Categorization Analysis Complete!**\n\nYour document has been successfully processed using advanced AI categorization technology. You can review the detailed compliance report or download the comprehensive findings.${getSmartCategorizationSummary(analysisResults)}`,
-                  timestamp: new Date(),
-                  type: "system",
-                  metadata: { analysisResults: analysisResults }
-                }]);
+                addCompletionMessage(
+                  `📊 **Smart Categorization Analysis Complete!**\n\nYour document has been successfully processed using advanced AI categorization technology. You can review the detailed compliance report or download the comprehensive findings.${getSmartCategorizationSummary(analysisResults)}`,
+                  sessionDocumentId,
+                  { analysisResults: analysisResults }
+                );
                 
                 // // Removed console.log for production
 } catch {
@@ -724,7 +739,7 @@ toast({
 
     // Run initialization logic
     handlePageLoad();
-  }, [searchParams, toast, chatSteps]);
+  }, [searchParams, toast, chatSteps, addCompletionMessage]);
 
   // Cleanup all polling on unmount AND on page load
   useEffect(() => {
@@ -966,10 +981,8 @@ toast({
                 }));
                 
                 // Show completion message with results available
-                addMessage(
-                  "🎉 **Smart Categorization Analysis Complete!**\n\nYour compliance analysis has been successfully completed using advanced AI categorization technology. You can now review the detailed results, including compliance scores, identified issues, and intelligent categorization insights.",
-                  "system",
-                  { documentId: chatState.documentId }
+                addCompletionMessage(
+                  "🎉 **Smart Categorization Analysis Complete!**\n\nYour compliance analysis has been successfully completed using advanced AI categorization technology. You can now review the detailed results, including compliance scores, identified issues, and intelligent categorization insights."
                 );
                 
                 // Also update metadata if available
@@ -1478,16 +1491,10 @@ toast({
             addMessage(resultsSummary, "system");
             
             // Add completion message with action button
-            const completionMessage: Message = {
-              id: generateUniqueId(),
-              type: "system",
-              content: "**Smart Categorization Analysis Complete!**\n\nYour compliance analysis has been successfully completed using advanced AI categorization technology. You can now review the detailed results, including compliance scores, identified issues, and intelligent categorization insights.",
-              timestamp: new Date(),
-              showResultsButton: true,
-              documentId: documentId,
-            };
-            
-            setMessages((prev) => [...prev, completionMessage]);
+            addCompletionMessage(
+              "**Smart Categorization Analysis Complete!**\n\nYour compliance analysis has been successfully completed using advanced AI categorization technology. You can now review the detailed results, including compliance scores, identified issues, and intelligent categorization insights.",
+              documentId
+            );
             moveToNextStep("results");
             return;
           } catch {
@@ -1501,16 +1508,10 @@ toast({
             
             addMessage("Smart categorization analysis completed! Click the button below to view results.", "system");
             
-            const completionMessage: Message = {
-              id: generateUniqueId(),
-              type: "system",
-              content: "🎉 **Smart Categorization Analysis Complete!**\n\nYour compliance analysis has been successfully completed using advanced AI categorization technology. You can now review the detailed results, including compliance scores, identified issues, and intelligent categorization insights.",
-              timestamp: new Date(),
-              showResultsButton: true,
-              documentId: documentId,
-            };
-            
-            setMessages((prev) => [...prev, completionMessage]);
+            addCompletionMessage(
+              "🎉 **Smart Categorization Analysis Complete!**\n\nYour compliance analysis has been successfully completed using advanced AI categorization technology. You can now review the detailed results, including compliance scores, identified issues, and intelligent categorization insights.",
+              documentId
+            );
             moveToNextStep("results");
             return;
           }
