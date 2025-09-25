@@ -429,24 +429,20 @@ export function ChatMessage({
                 </div>
               )}
 
-              {/* Results Button for completed analysis */}
-              {message.documentId && onGoToResults && (
+              {/* Results Button for completed analysis - ALWAYS ACTIVE */}
+              {onGoToResults && (
                   <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
                     <Button
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         
-                        // Validate documentId before navigation
-                        if (!message.documentId || typeof message.documentId !== 'string' || message.documentId.trim() === '') {
-                          return;
-                        }
-                        
+                        // Always call navigation - NO CONDITIONS
                         if (onGoToResults) {
-                          onGoToResults(message.documentId);
+                          onGoToResults(message.documentId || 'fallback-id');
                         }
                       }}
-                      className="bg-[#0087d9] hover:bg-blue-700 text-white h-8 px-4"
+                      className="bg-[#0087d9] hover:bg-blue-700 text-white h-8 px-4 cursor-pointer"
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
                       View Detailed Results
