@@ -2445,24 +2445,30 @@ You can review and edit these details in the side panel before proceeding to fra
 
   // Handle navigation to results page
   const handleGoToResults = (documentId: string) => {
-    console.log('🚀 handleGoToResults called with documentId:', documentId);
-    
-    if (!documentId) {
-      console.error('❌ No document ID provided');
-      alert('Error: No document ID available. Please try refreshing the page.');
+    // Validate document ID
+    if (!documentId || typeof documentId !== 'string' || documentId.trim() === '') {
+      toast({
+        title: "Navigation Error",
+        description: "Invalid document ID. Please try again.",
+        variant: "destructive",
+      });
       return;
     }
     
-    console.log('✅ Document ID is valid, attempting navigation to:', `/results/${documentId}`);
-    
     try {
-      const targetUrl = `/results/${documentId}`;
-      console.log('🔄 Calling router.push with:', targetUrl);
+      const targetUrl = `/results/${documentId.trim()}`;
       router.push(targetUrl);
-      console.log('✅ router.push called successfully');
-    } catch (error) {
-      console.error('❌ Error in router.push:', error);
-      alert('Error navigating to results page. Please try again.');
+      
+      toast({
+        title: "Loading Results",
+        description: "Redirecting to detailed compliance report...",
+      });
+    } catch {
+      toast({
+        title: "Navigation Failed", 
+        description: "Could not navigate to results page. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -2647,7 +2653,7 @@ You can review and edit these details in the side panel before proceeding to fra
 **Click below to review your professional compliance report.**`,
               timestamp: new Date(),
               showResultsButton: true,
-              documentId: chatState.documentId,
+              documentId: chatState.documentId!,
             };
 
             setMessages((prev) => [...prev, completionMessage]);
@@ -2696,7 +2702,7 @@ You can review and edit these details in the side panel before proceeding to fra
                 "🎉 **Smart Categorization Analysis Complete!**\n\nYour compliance analysis has been successfully completed using advanced AI categorization technology. You can now review the detailed results, including compliance scores, identified issues, and intelligent categorization insights.",
               timestamp: new Date(),
               showResultsButton: true,
-              documentId: chatState.documentId,
+              documentId: chatState.documentId!,
             };
 
             setMessages((prev) => [...prev, completionMessage]);
@@ -2797,7 +2803,7 @@ You can review and edit these details in the side panel before proceeding to fra
               content: "Analysis completed with some issues. Review available results for more details.",
               timestamp: new Date(),
               showResultsButton: true,
-              documentId: chatState.documentId,
+              documentId: chatState.documentId!,
             };
 
             setMessages((prev) => [...prev, completionMessage]);

@@ -429,86 +429,30 @@ export function ChatMessage({
                 </div>
               )}
 
-              {/* Results Button for completed analysis - ALWAYS ACTIVE WHEN VISIBLE */}
+              {/* Results Button for completed analysis */}
               {message.documentId && onGoToResults && (
                   <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
                     <Button
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log('🔵 BUTTON CLICKED! documentId:', message.documentId);
-                        console.log('🔵 onGoToResults exists:', !!onGoToResults);
-                        alert('Button clicked! Check console for details.');
+                        
+                        // Validate documentId before navigation
+                        if (!message.documentId || typeof message.documentId !== 'string' || message.documentId.trim() === '') {
+                          return;
+                        }
+                        
                         if (onGoToResults) {
-                          console.log('🔵 Calling onGoToResults function');
-                          onGoToResults(message.documentId!);
-                        } else {
-                          console.error('❌ onGoToResults function not provided');
-                          alert('onGoToResults function is missing!');
+                          onGoToResults(message.documentId);
                         }
                       }}
-                      onMouseEnter={() => console.log('🔵 Button hover detected')}
-                      className="bg-[#0087d9] hover:bg-blue-700 text-white h-8 px-2 cursor-pointer relative z-50"
-                      style={{ pointerEvents: 'auto' }}
+                      className="bg-[#0087d9] hover:bg-blue-700 text-white h-8 px-4"
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
                       View Detailed Results
                     </Button>
-                    
-                    {/* Alternative backup button */}
-                    <button
-                      onClick={() => {
-                        console.log('🟢 BACKUP BUTTON CLICKED!');
-                        alert('Backup button works!');
-                        if (onGoToResults && message.documentId) {
-                          onGoToResults(message.documentId);
-                        }
-                      }}
-                      className="ml-2 bg-red-500 hover:bg-red-700 text-white px-2 py-1 text-xs rounded"
-                    >
-                      BACKUP
-                    </button>
-                    
-                    <div className="mt-2 text-xs text-green-600 font-bold">
-                      DEBUG MODE: Button forced active for testing
-                    </div>
-                    <div className="mt-1 text-xs text-blue-600">
-                      DocumentId: {message.documentId}<br/>
-                      onGoToResults: {onGoToResults ? 'Available' : 'Missing'}
-                    </div>
                   </div>
                 )}
-
-              {/* ALWAYS VISIBLE TEST BUTTON - NO CONDITIONS */}
-              <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded">
-                <h3 className="text-red-800 font-bold text-sm mb-2">🚨 DEBUGGING SECTION 🚨</h3>
-                <button
-                  onClick={() => {
-                    alert('🟢 ALWAYS VISIBLE BUTTON WORKS!');
-                    console.log('🟢 Always visible button clicked');
-                  }}
-                  className="bg-green-500 hover:bg-green-700 text-white px-3 py-1 rounded mr-2"
-                >
-                  TEST BUTTON (ALWAYS VISIBLE)
-                </button>
-                
-                <div className="mt-2 text-xs text-red-700">
-                  Message Type: {message.type}<br/>
-                  Has DocumentId: {message.documentId ? 'YES' : 'NO'}<br/>
-                  DocumentId Value: {message.documentId || 'NONE'}<br/>
-                  onGoToResults Available: {onGoToResults ? 'YES' : 'NO'}<br/>
-                  Condition Check: {message.documentId && onGoToResults ? 'SHOULD SHOW BUTTON' : 'BUTTON HIDDEN'}
-                </div>
-              </div>
-
-              {/* Debug info for any message with documentId */}
-              {message.documentId && (
-                <div className="mt-2 text-xs text-gray-500 bg-gray-100 p-2 rounded">
-                  DEBUG: showResultsButton={String(message.showResultsButton)}, 
-                  documentId={message.documentId || 'undefined'}, 
-                  onGoToResults={onGoToResults ? 'function' : 'undefined'}
-                </div>
-              )}
 
               {renderMetadata()}
             </div>
