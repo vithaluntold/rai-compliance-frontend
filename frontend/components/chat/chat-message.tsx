@@ -452,6 +452,22 @@ export function ChatMessage({
                   </div>
                 )}
 
+              {/* PERMANENT DEBUG TEST BUTTON - ALWAYS SHOWS */}
+              <div className="mt-4 pt-3 border-t border-red-500">
+                <Button
+                  onClick={() => {
+                    alert("PERMANENT TEST BUTTON CLICKED! Message ID: " + message.id);
+                    if (onGoToResults) {
+                      onGoToResults('test-doc-id');
+                    }
+                  }}
+                  className="bg-red-500 hover:bg-red-700 text-white h-8 px-4"
+                  style={{ cursor: 'pointer' }}
+                >
+                  🚨 PERMANENT TEST BUTTON 🚨
+                </Button>
+              </div>
+
               {renderMetadata()}
             </div>
           </div>
