@@ -267,7 +267,13 @@ return acc; // Skip sections without standard
             <div>
               <strong>Analysis Completed:</strong>{" "}
               {results.completed_at
-                ? new Date(results.completed_at).toLocaleString()
+                ? new Date(results.completed_at).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })
                 : "N/A"}
             </div>
             {results.specialInstructions && (

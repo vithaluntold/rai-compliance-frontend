@@ -138,7 +138,13 @@ export function ComplianceSummary({
                 <div className="text-right text-sm text-gray-500">
                   <div className="flex items-center">
                     <ClockIcon className="h-4 w-4 mr-1" />
-                    {new Date(completedAt).toLocaleString()}
+                    {new Date(completedAt).toLocaleString('en-US', {
+                      year: 'numeric',
+                      month: 'short', 
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
                   </div>
                 </div>
               )}

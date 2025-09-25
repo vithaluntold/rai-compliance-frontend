@@ -86,6 +86,9 @@ export default function ComplianceChecklistPage() {
   const [isExportingWord, setIsExportingWord] = useState(false);
 
   const loadSavedAuditReview = useCallback(() => {
+    // Only access localStorage on client side to prevent hydration mismatches
+    if (typeof window === 'undefined') return;
+    
     try {
       const savedReview = localStorage.getItem(`audit_review_${documentId}`);
       if (savedReview) {
@@ -207,9 +210,11 @@ const errorMessage = err instanceof Error ? err.message : "Failed to load compli
         auditor_review: Object.keys(editedAnswers).length > 0
       };
 
-      // For now, we'll save to localStorage as a backup
+      // For now, we'll save to localStorage as a backup (client-side only)
       // In the future, this could be sent to a backend API
-      localStorage.setItem(`audit_review_${documentId}`, JSON.stringify(auditData));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`audit_review_${documentId}`, JSON.stringify(auditData));
+      }
       
       toast({
         title: "Review Saved",
