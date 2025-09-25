@@ -89,7 +89,7 @@ export default function ComprehensiveTestPage() {
                   onClick={() => runTest('msg-null', () => {
                     try {
                       // This should now be safe due to our fix with !
-                      const message = createCompletionMessage(null);
+                      createCompletionMessage(null);
                       // If we reach here without error, the ! operator handled it
                       return { status: 'pass', message: '✅ Null documentId handled by ! operator' };
                     } catch (error) {
