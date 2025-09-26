@@ -2091,8 +2091,9 @@ You can review and edit these details in the side panel before proceeding to fra
         "system",
       );
 
-      // Start analysis directly with smart mode
-      await handleAnalysisStart();
+      // Move to analysis step and start compliance analysis directly with the selected values
+      moveToNextStep("analysis");
+      await startComplianceAnalysis(chatState.documentId!, framework, standards);
     } catch (error: unknown) {
       addLog('error', 'Framework', 'Framework selection error', { error: error instanceof Error ? error.message : String(error) });
       setChatState((prev) => ({ ...prev, isProcessing: false }));
