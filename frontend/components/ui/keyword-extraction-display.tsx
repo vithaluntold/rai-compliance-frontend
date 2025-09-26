@@ -34,7 +34,7 @@ export function KeywordExtractionDisplay({
       return () => clearTimeout(timer);
     }
     return undefined;
-  }, [keywords, animatedKeywords]);
+  }, [keywords.length, animatedKeywords.length]); // Only watch lengths, not the arrays themselves
 
   // Reset when keywords change
   useEffect(() => {
