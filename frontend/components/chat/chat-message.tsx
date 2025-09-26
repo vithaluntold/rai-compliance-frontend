@@ -458,13 +458,6 @@ export function ChatMessage({
             </div>
           </div>
         </Card>
-
-        {/* Timestamp below the message container */}
-        <div
-          className={`mt-1 text-xs opacity-70 ${message.type === "user" ? "text-right" : "text-left"}`}
-        >
-          {message.timestamp.toLocaleTimeString()}
-        </div>
       </div>
     </motion.div>
   );

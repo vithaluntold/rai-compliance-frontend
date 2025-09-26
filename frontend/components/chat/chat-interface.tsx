@@ -13,7 +13,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { api, SessionDetail } from "@/lib/api-client";
 import { useProcessingLogs } from "@/components/ui/processing-logs";
 import { useTheme } from "@/context/theme-context";
-import { useConsistentTimestamp } from "@/hooks/useConsistentTimestamp";
 import {
   Framework,
   updateAvailableStandards,
@@ -128,7 +127,6 @@ export interface Message {
   id: string;
   type: "user" | "system" | "loading" | "component";
   content: string | React.ReactNode;
-  timestamp: Date;
   component?:
     | "analysis-mode-selection"
     | "suggestions";
@@ -211,7 +209,6 @@ export function ChatInterface(): React.JSX.Element {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { addLog } = useProcessingLogs();
-  const getConsistentTimestamp = useConsistentTimestamp();
   
   // Session management state
   const [currentSession, setCurrentSession] = useState<SessionDetail | null>(null);
@@ -222,8 +219,7 @@ export function ChatInterface(): React.JSX.Element {
     addLog(
       'info',
       'API',
-      `API call: ${apiName}`,
-      { timestamp: getConsistentTimestamp().toLocaleTimeString() }
+      `API call: ${apiName}`
     );
   };
   
@@ -338,7 +334,6 @@ export function ChatInterface(): React.JSX.Element {
         id: generateUniqueId(),
         type: "system",
         content,
-        timestamp: getConsistentTimestamp(),
         // No documentId = no navigation button
         metadata: { ...metadata },
       };
@@ -351,7 +346,6 @@ export function ChatInterface(): React.JSX.Element {
       id: generateUniqueId(),
       type: "system",
       content,
-      timestamp: getConsistentTimestamp(),
       documentId: resolvedDocumentId.trim(), // Always trim for consistency
       showResultsButton: true, // Explicitly enable the results button
       metadata: { 
@@ -362,7 +356,7 @@ export function ChatInterface(): React.JSX.Element {
     };
     setMessages((prev) => [...prev, completionMessage]);
     return completionMessage.id;
-  }, [chatState.documentId, chatState.analysisResults, addLog, getConsistentTimestamp]);
+  }, [chatState.documentId, chatState.analysisResults, addLog]);
 
   // INITIALIZATION LOGIC - Always start fresh unless explicitly loading a session or document
   useEffect(() => {
@@ -483,7 +477,6 @@ export function ChatInterface(): React.JSX.Element {
             id: String(msg['id'] || ''),
             type: (msg['type'] as "user" | "system" | "loading" | "component") || "system",
             content: String(msg['content'] || ''),
-            timestamp: msg['timestamp'] ? new Date(String(msg['timestamp'])) : getConsistentTimestamp(),
             component: (msg['component'] as "analysis-mode-selection" | "suggestions") || undefined,
             showResultsButton: Boolean(msg['showResultsButton']),
             documentId: msg['documentId'] ? String(msg['documentId']) : null,
@@ -495,7 +488,6 @@ export function ChatInterface(): React.JSX.Element {
             {
               id: generateUniqueId(),
               content: `Welcome back! Loaded session: ${session.title}`,
-              timestamp: getConsistentTimestamp(),
               type: "system",
             },
           ]);
@@ -526,7 +518,6 @@ export function ChatInterface(): React.JSX.Element {
               setMessages(prev => [...prev, {
                 id: generateUniqueId(),
                 content: `Document metadata loaded: ${simpleMetadata.company_name}`,
-                timestamp: getConsistentTimestamp(),
                 type: "system",
               }]);
             } else {
@@ -608,7 +599,6 @@ export function ChatInterface(): React.JSX.Element {
                 setMessages(prev => [...prev, {
                   id: generateUniqueId(),
                   content: `⚠ Smart categorization analysis was completed, but results could not be loaded. You may need to re-run the analysis.`,
-                  timestamp: getConsistentTimestamp(),
                   type: "system",
                 }]);
               }
@@ -617,7 +607,6 @@ export function ChatInterface(): React.JSX.Element {
               setMessages(prev => [...prev, {
                 id: generateUniqueId(),
                 content: `🔄 Smart categorization analysis is still in progress. Continuing from where we left off...`,
-                timestamp: getConsistentTimestamp(),
                 type: "system",
               }]);
               
@@ -634,7 +623,6 @@ export function ChatInterface(): React.JSX.Element {
                   <XMarkIcon className="inline mr-2 h-4 w-4" />
                   Previous analysis failed. You can try uploading the document again.
                 </>,
-                timestamp: getConsistentTimestamp(),
                 type: "system",
               }]);
             }
@@ -706,7 +694,6 @@ export function ChatInterface(): React.JSX.Element {
             {
               id: generateUniqueId(),
               content: `Document loaded! Found metadata for: ${simpleMetadata.company_name}`,
-              timestamp: getConsistentTimestamp(),
               type: "system",
               metadata: {
                 documentMetadata: simpleMetadata,
@@ -760,7 +747,6 @@ toast({
         {
           id: generateUniqueId(),
           content: "Welcome to RAi Compliance Engine! I'll help you analyze your financial statements using our advanced smart categorization technology for precise compliance analysis. Let's start by uploading your document for intelligent processing.",
-          timestamp: getConsistentTimestamp(),
           type: "system",
         },
       ]);
@@ -768,7 +754,7 @@ toast({
 
     // Run initialization logic
     handlePageLoad();
-  }, [searchParams, toast, chatSteps, addCompletionMessage, getConsistentTimestamp]);
+  }, [searchParams, toast, chatSteps, addCompletionMessage]);
 
   // Cleanup all polling on unmount AND on page load
   useEffect(() => {
@@ -1120,7 +1106,6 @@ toast({
       id: generateUniqueId(),
       type,
       content,
-      timestamp: getConsistentTimestamp(),
       metadata: metadata || {},
       component: (metadata?.['component'] as "analysis-mode-selection" | "suggestions") || undefined,
     };
@@ -1138,7 +1123,6 @@ toast({
             ...lastMessage,
             id: lastMessage.id || generateUniqueId(),
             type: lastMessage.type,
-            timestamp: lastMessage.timestamp,
             content,
             metadata: { ...(lastMessage.metadata || {}), ...(metadata || {}) },
           };
@@ -1259,7 +1243,6 @@ toast({
         {
           id: generateUniqueId(),
           content: "Welcome to RAi Compliance Engine! I'll help you analyze your financial statements using our advanced smart categorization technology for precise compliance analysis. Let's start by uploading your document for intelligent processing.",
-          timestamp: getConsistentTimestamp(),
           type: "system",
         },
       ]);
