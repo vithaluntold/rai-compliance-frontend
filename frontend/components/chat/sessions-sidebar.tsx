@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -271,26 +270,20 @@ toast({
       </Button>
 
       {/* Sidebar */}
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/20 z-40 lg:hidden"
-              onClick={onToggle}
-            />
-            
-            {/* Sidebar Content */}
-            <motion.div
-              initial={{ x: -320 }}
-              animate={{ x: 0 }}
-              exit={{ x: -320 }}
-              transition={{ type: "spring", damping: 20, stiffness: 100 }}
-              className="fixed left-0 top-0 h-full w-[26rem] bg-white dark:bg-black sidebar-panel border-r border-gray-200 dark:border-white z-50 flex flex-col shadow-lg"
-            >
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            suppressHydrationWarning
+            className="fixed inset-0 bg-black/20 z-40 lg:hidden"
+            onClick={onToggle}
+          />
+          
+          {/* Sidebar Content */}
+          <div
+            suppressHydrationWarning
+            className="fixed left-0 top-0 h-full w-[26rem] bg-white dark:bg-black sidebar-panel border-r border-gray-200 dark:border-white z-50 flex flex-col shadow-lg"
+          >
               {/* Header */}
               <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-[#0087d9]">
                 <div className="flex items-center justify-between mb-4">
@@ -461,10 +454,9 @@ toast({
               </ScrollArea>
 
 
-            </motion.div>
+            </div>
           </>
         )}
-      </AnimatePresence>
     </>
   );
 }
