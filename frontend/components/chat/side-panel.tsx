@@ -8,7 +8,11 @@ import {Progress} from "@/components/ui/progress";
 import {Textarea} from "@/components/ui/textarea";
 
 
-import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
+import dynamic from "next/dynamic";
+
+// Use dynamic imports to prevent potential SSR/hydration issues
+const Collapsible = dynamic(() => import("@/components/ui/collapsible").then(mod => ({ default: mod.Collapsible })), { ssr: false });
+const CollapsibleContent = dynamic(() => import("@/components/ui/collapsible").then(mod => ({ default: mod.CollapsibleContent })), { ssr: false });
 import "../../styles/progress-glow.css";
 import {
   Building,
@@ -238,31 +242,10 @@ export function SidePanel({
     }));
   };
 
-  // Auto-collapse completed steps when moving to next step (except progress which is always visible)
-  useEffect(() => {
-    if (chatState.currentStep?.id) {
-      const currentStepId = chatState.currentStep.id;
-      
-      // Only update if the collapse state would actually change
-      setCollapsedSections(prev => {
-        const newMetadata = currentStepId !== "metadata" && (currentStepId === "framework-selection" || currentStepId === "processing-mode" || currentStepId === "analysis" || currentStepId === "results");
-        const newFramework = currentStepId === "analysis" || currentStepId === "results";
-        
-        // Only update state if something actually changed
-        if (prev.metadata !== newMetadata || prev.framework !== newFramework) {
-          return {
-            ...prev,
-            metadata: newMetadata,
-            framework: newFramework,
-            results: false, // Results never auto-collapse
-          };
-        }
-        return prev;
-      });
-    }
-  }, [chatState.currentStep?.id]);
+  // Auto-collapse disabled to prevent any possibility of infinite loops
+  // Users can manually collapse sections using the toggle buttons
 
-  // Update edited metadata when chatState.documentMetadata changes
+  // Initialize edited metadata once to prevent infinite loops
   useEffect(() => {
     if (chatState.documentMetadata) {
       setEditedMetadata({
@@ -278,7 +261,7 @@ export function SidePanel({
         ),
       });
     }
-  }, [chatState.documentMetadata]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSaveMetadata = () => {
     onMetadataUpdate(editedMetadata);
