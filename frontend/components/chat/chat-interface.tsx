@@ -806,17 +806,16 @@ toast({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Auto-save session when state changes
-  useEffect(() => {
-    if (currentSession && (chatState.documentId || messages.length > 1)) {
-      const saveTimeout = setTimeout(() => {
-        saveCurrentSession();
-      }, 2000); // Debounce save for 2 seconds
-
-      return () => clearTimeout(saveTimeout);
-    }
-    return undefined;
-  }, [chatState, messages, currentSession]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Auto-save disabled to prevent infinite loops - sessions save on explicit actions only
+  // useEffect(() => {
+  //   if (currentSession && (chatState.documentId || messages.length > 1)) {
+  //     const saveTimeout = setTimeout(() => {
+  //       saveCurrentSession();
+  //     }, 2000);
+  //     return () => clearTimeout(saveTimeout);
+  //   }
+  //   return undefined;
+  // }, [chatState.documentId, chatState.currentStep?.id, messages.length, currentSession?.session_id]);
 
   // Load frameworks when reaching framework step
   useEffect(() => {
@@ -1095,7 +1094,7 @@ toast({
         setPollingTimer(null);
       }
     };
-  }, [chatState.documentId, pollingTimer]); // Reset when document changes
+  }, [chatState.documentId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const addMessage = (
     content: string | React.ReactNode,
