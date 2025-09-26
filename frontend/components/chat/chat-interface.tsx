@@ -2491,6 +2491,14 @@ You can review and edit these details in the side panel before proceeding to fra
   };
 
   const handleCustomInstructionsSubmit = (instructions: string) => {
+    // Debug logging to track state
+    addLog('info', 'CustomInstructions', 'Custom instructions submission started', {
+      documentId: chatState.documentId,
+      selectedFramework: chatState.selectedFramework,
+      selectedStandards: chatState.selectedStandards?.length || 0,
+      customInstructions: instructions.substring(0, 100) + '...'
+    });
+    
     // Save custom instructions to state
     setChatState((prev) => ({
       ...prev,
@@ -2515,9 +2523,38 @@ You can review and edit these details in the side panel before proceeding to fra
 
     // Move to analysis and start the process
     moveToNextStep("analysis");
+    
+    // Validate that all required parameters are available before starting analysis
+    if (!chatState.documentId) {
+      addMessage(
+        "❌ **Session Error**: Document session has expired. Please upload your document again to continue.",
+        "system"
+      );
+      moveToNextStep("upload");
+      return;
+    }
+    
+    if (!chatState.selectedFramework) {
+      addMessage(
+        "❌ **Configuration Error**: Framework selection is missing. Please select a framework first.",
+        "system"
+      );
+      moveToNextStep("framework-selection");
+      return;
+    }
+    
+    if (!chatState.selectedStandards || chatState.selectedStandards.length === 0) {
+      addMessage(
+        "❌ **Configuration Error**: No standards selected. Please select at least one accounting standard.",
+        "system"
+      );
+      moveToNextStep("framework-selection");
+      return;
+    }
+    
     startComplianceAnalysis(
-      chatState.documentId!,
-      chatState.selectedFramework!,
+      chatState.documentId,
+      chatState.selectedFramework,
       chatState.selectedStandards
     );
   };
