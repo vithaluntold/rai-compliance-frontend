@@ -2004,12 +2004,10 @@ You can review and edit these details in the side panel before proceeding to fra
         active: index === currentStepIndex,
       }));
 
-      setChatState((prev) => {
-        return {
-          ...prev,
-          currentStep: updatedSteps[currentStepIndex] || null,
-        };
-      });
+      setChatState((prev) => ({
+        ...prev,
+        currentStep: updatedSteps[currentStepIndex] || null,
+      }));
 
       // Add transition messages for specific steps
       if (stepId === "framework-selection") {
@@ -2491,11 +2489,16 @@ You can review and edit these details in the side panel before proceeding to fra
   };
 
   const handleCustomInstructionsSubmit = (instructions: string) => {
+    // Capture state values before any updates to avoid race conditions
+    const currentDocumentId = chatState.documentId;
+    const currentFramework = chatState.selectedFramework;
+    const currentStandards = chatState.selectedStandards;
+    
     // Debug logging to track state
     addLog('info', 'CustomInstructions', 'Custom instructions submission started', {
-      documentId: chatState.documentId,
-      selectedFramework: chatState.selectedFramework,
-      selectedStandards: chatState.selectedStandards?.length || 0,
+      documentId: currentDocumentId,
+      selectedFramework: currentFramework,
+      selectedStandards: currentStandards?.length || 0,
       customInstructions: instructions.substring(0, 100) + '...'
     });
     
@@ -2523,39 +2526,10 @@ You can review and edit these details in the side panel before proceeding to fra
 
     // Move to analysis and start the process
     moveToNextStep("analysis");
-    
-    // Validate that all required parameters are available before starting analysis
-    if (!chatState.documentId) {
-      addMessage(
-        "❌ **Session Error**: Document session has expired. Please upload your document again to continue.",
-        "system"
-      );
-      moveToNextStep("upload");
-      return;
-    }
-    
-    if (!chatState.selectedFramework) {
-      addMessage(
-        "❌ **Configuration Error**: Framework selection is missing. Please select a framework first.",
-        "system"
-      );
-      moveToNextStep("framework-selection");
-      return;
-    }
-    
-    if (!chatState.selectedStandards || chatState.selectedStandards.length === 0) {
-      addMessage(
-        "❌ **Configuration Error**: No standards selected. Please select at least one accounting standard.",
-        "system"
-      );
-      moveToNextStep("framework-selection");
-      return;
-    }
-    
     startComplianceAnalysis(
-      chatState.documentId,
-      chatState.selectedFramework,
-      chatState.selectedStandards
+      currentDocumentId || undefined,
+      currentFramework || undefined,
+      currentStandards
     );
   };
 
