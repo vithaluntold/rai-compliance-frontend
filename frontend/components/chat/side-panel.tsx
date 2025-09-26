@@ -6,11 +6,9 @@ import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {Progress} from "@/components/ui/progress";
 import {Textarea} from "@/components/ui/textarea";
-import dynamic from "next/dynamic";
 
-// Dynamically import Collapsible components to prevent SSR issues
-const Collapsible = dynamic(() => import("@/components/ui/collapsible").then(mod => ({ default: mod.Collapsible })), { ssr: false });
-const CollapsibleContent = dynamic(() => import("@/components/ui/collapsible").then(mod => ({ default: mod.CollapsibleContent })), { ssr: false });
+
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import "../../styles/progress-glow.css";
 import {
   Building,
@@ -242,20 +240,27 @@ export function SidePanel({
 
   // Auto-collapse completed steps when moving to next step (except progress which is always visible)
   useEffect(() => {
-    if (chatState.currentStep) {
+    if (chatState.currentStep?.id) {
       const currentStepId = chatState.currentStep.id;
       
-      setCollapsedSections(prev => ({
-        ...prev,
-        // Auto-collapse metadata when moving past metadata step
-        metadata: currentStepId !== "metadata" && (currentStepId === "framework-selection" || currentStepId === "processing-mode" || currentStepId === "analysis" || currentStepId === "results"),
-        // Auto-collapse framework when moving to analysis or results
-        framework: currentStepId === "analysis" || currentStepId === "results",
-        // Keep progress and analysis always visible, results only collapse if not on results step
-        results: false, // Results never auto-collapse
-      }));
+      // Only update if the collapse state would actually change
+      setCollapsedSections(prev => {
+        const newMetadata = currentStepId !== "metadata" && (currentStepId === "framework-selection" || currentStepId === "processing-mode" || currentStepId === "analysis" || currentStepId === "results");
+        const newFramework = currentStepId === "analysis" || currentStepId === "results";
+        
+        // Only update state if something actually changed
+        if (prev.metadata !== newMetadata || prev.framework !== newFramework) {
+          return {
+            ...prev,
+            metadata: newMetadata,
+            framework: newFramework,
+            results: false, // Results never auto-collapse
+          };
+        }
+        return prev;
+      });
     }
-  }, [chatState.currentStep]);
+  }, [chatState.currentStep?.id]);
 
   // Update edited metadata when chatState.documentMetadata changes
   useEffect(() => {
@@ -320,12 +325,7 @@ export function SidePanel({
     className?: string;
     variant?: "default" | "active" | "completed" | "processing";
   }) => {
-    const [isMounted, setIsMounted] = useState(false);
     const isCollapsed = sectionKey ? collapsedSections[sectionKey] : false;
-    
-    useEffect(() => {
-      setIsMounted(true);
-    }, []);
     
     const variantStyles = {
       default: "bg-blue-50 border-blue-200",
@@ -378,16 +378,16 @@ export function SidePanel({
         </div>
 
         {/* Content */}
-        {collapsible && sectionKey && isMounted ? (
+        {collapsible && sectionKey ? (
           <Collapsible open={!isCollapsed}>
             <CollapsibleContent>
-              <div className="relative z-10 p-3 bg-white/80 backdrop-blur-sm">
+              <div className="relative z-10 p-3 bg-blue-50/80 backdrop-blur-sm">
                 {children}
               </div>
             </CollapsibleContent>
           </Collapsible>
         ) : (
-          <div className="relative z-10 p-3 bg-white/80 backdrop-blur-sm">
+          <div className="relative z-10 p-3 bg-blue-50/80 backdrop-blur-sm">
             {children}
           </div>
         )}
