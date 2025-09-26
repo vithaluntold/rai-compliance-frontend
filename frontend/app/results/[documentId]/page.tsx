@@ -96,17 +96,13 @@ export default function ComplianceChecklistPage() {
         setEditedAnswers(auditData.edited_answers || {});
         setAuditComments(auditData.audit_comments || {});
         
-        if (Object.keys(auditData.edited_answers || {}).length > 0) {
-          toast({
-            title: "Previous Review Loaded",
-            description: `Loaded ${Object.keys(auditData.edited_answers).length} previously saved modifications.`,
-          });
-        }
+        // Don't show toast to avoid dependency issues
+        // The user can see the loaded data in the UI
       }
     } catch {
-      // // Removed console.error for production
-}
-  }, [documentId, toast]);
+      // Silent error handling to avoid infinite loops
+    }
+  }, [documentId]);
 
   const loadComplianceData = useCallback(async () => {
     try {
@@ -122,18 +118,13 @@ export default function ComplianceChecklistPage() {
       setMetadata(documentResponse.metadata || {});
 
     } catch (err: unknown) {
-      // // Removed console.error for production
-const errorMessage = err instanceof Error ? err.message : "Failed to load compliance data";
+      const errorMessage = err instanceof Error ? err.message : "Failed to load compliance data";
       setError(errorMessage);
-      toast({
-        title: "Error",
-        description: "Failed to load compliance data. Please try again.",
-        variant: "destructive",
-      });
+      // Don't use toast here to avoid dependency issues - error state will show in UI
     } finally {
       setLoading(false);
     }
-  }, [documentId, toast]);
+  }, [documentId]);
 
   // Load data on component mount
   useEffect(() => {

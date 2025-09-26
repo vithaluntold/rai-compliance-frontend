@@ -39,7 +39,7 @@ import {
 } from "lucide-react";
 import type { ChatState, ChatStep } from "./chat-interface";
 import FrameworkSelectionPanel from "./FrameworkSelectionPanel";
-import {KeywordExtractionDisplay} from "@/components/ui/keyword-extraction-display";
+// import {KeywordExtractionDisplay} from "@/components/ui/keyword-extraction-display"; // TEMPORARILY DISABLED
 import {AccountingStandardsDisplay} from "@/components/ui/accounting-standards-display";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
@@ -547,6 +547,7 @@ export function SidePanel({
                 )}
 
                 {/* Keyword Extraction Display */}
+                {/* TEMPORARILY DISABLED TO FIX INFINITE LOOP
                 {step.id === "upload" &&
                   isActive &&
                   (isUploading ||
@@ -565,7 +566,7 @@ export function SidePanel({
                         }
                       />
                     </div>
-                  )}
+                  )} */}
 
                 {/* Upload Error Display */}
                 {step.id === "upload" && uploadError && (

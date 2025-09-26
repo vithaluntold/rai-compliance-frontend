@@ -20,26 +20,14 @@ export function KeywordExtractionDisplay({
   const [animatedKeywords, setAnimatedKeywords] = useState<string[]>([]);
   const [pulseAnimation, setPulseAnimation] = useState(false);
 
-  // Animate keywords appearing one by one
+  // Simple non-animated display to prevent infinite loops
   useEffect(() => {
-    if (keywords.length > animatedKeywords.length) {
-      const timer = setTimeout(() => {
-        setAnimatedKeywords((prev) => {
-          const nextKeyword = keywords[prev.length];
-          return nextKeyword ? [...prev, nextKeyword] : prev;
-        });
-        setPulseAnimation(true);
-        setTimeout(() => setPulseAnimation(false), 500);
-      }, 300);
+    // Just set all keywords at once, no animation to avoid loops
+    setAnimatedKeywords(keywords);
+    if (keywords.length > 0) {
+      setPulseAnimation(true);
+      const timer = setTimeout(() => setPulseAnimation(false), 500);
       return () => clearTimeout(timer);
-    }
-    return undefined;
-  }, [keywords.length, animatedKeywords.length]); // Only watch lengths, not the arrays themselves
-
-  // Reset when keywords change
-  useEffect(() => {
-    if (keywords.length === 0) {
-      setAnimatedKeywords([]);
     }
   }, [keywords]);
 

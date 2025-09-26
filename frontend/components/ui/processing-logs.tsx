@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Terminal, Copy, Download } from 'lucide-react';
 import { CheckIcon, XMarkIcon, WarningIcon } from '@/components/ui/professional-icons';
@@ -232,7 +232,7 @@ export function ProcessingLogs({
 export function useProcessingLogs() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
-  const addLog = (
+  const addLog = useCallback((
     level: LogEntry['level'],
     category: string,
     message: string,
@@ -250,11 +250,11 @@ export function useProcessingLogs() {
     };
 
     setLogs(prev => [newLog, ...prev].slice(0, 1000)); // Keep only last 1000 logs
-  };
+  }, []);
 
-  const clearLogs = () => {
+  const clearLogs = useCallback(() => {
     setLogs([]);
-  };
+  }, []);
 
   return {
     logs,

@@ -16,6 +16,7 @@ import {SuggestionMessage} from "./suggestion-message";
 import type { Message, ChatState } from "./chat-interface";
 import type { ReactNode } from "react";
 import { Card } from "@/components/ui/card";
+import { motion } from "framer-motion";
 
 // Utility function to truncate filename while preserving extension
 const truncateFileName = (fileName: string, maxLength: number = 30): string => {
@@ -306,8 +307,11 @@ export function ChatMessage({
   };
 
   return (
-    <div
-      suppressHydrationWarning
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
       className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}
     >
       <div
@@ -455,6 +459,6 @@ export function ChatMessage({
           </div>
         </Card>
       </div>
-    </div>
+    </motion.div>
   );
 }
