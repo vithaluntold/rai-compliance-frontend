@@ -858,29 +858,7 @@ export function ChatInput({
           )}
         </AnimatePresence>
 
-        {/* Proceed to Analysis Button for Custom Instructions Step */}
-        {chatState.currentStep?.id === "custom-instructions" && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-4 flex justify-center"
-          >
-            <Button
-              onClick={() => onCustomInstructions?.("")}
-              disabled={disabled}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2"
-              >
-                <span>Proceed to Analysis</span>
-                <Send className="h-4 w-4" />
-              </motion.div>
-            </Button>
-          </motion.div>
-        )}
+
 
         {/* Status Indicator */}
         {chatState.fileName && (

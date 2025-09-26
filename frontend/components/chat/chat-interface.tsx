@@ -204,7 +204,7 @@ export interface ChatState {
   };
 }
 
-export function ChatInterface(): React.JSX.Element {
+export function ChatInterface() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -1033,7 +1033,7 @@ toast({
                   'Failed to load complete results, falling back to metadata polling',
                   { error: error instanceof Error ? error.message : 'Unknown error' }
                 );
-                pollForMetadata(chatState.documentId);
+                // Note: Will implement metadata polling here
               }
             }
           }, 2000);
@@ -1049,7 +1049,7 @@ toast({
         // If progress not found (404), provide fallback progress or check if completed
         if (error && typeof error === 'object' && 'status' in error && error.status === 404) {
           if (chatState.documentId) {
-            pollForMetadata(chatState.documentId);
+            // Note: Will implement metadata polling here
           }
         } else {
           // For other errors, show fallback progress to keep UI alive
@@ -1276,14 +1276,47 @@ toast({
         }
       );
 
-      // ✅ CRITICAL FIX: If we have upload response with document_id, use it directly
-      if (response && response['document_id']) {
-        addLog(
-          'success',
-          'Upload',
-          `Document ID received: ${response['document_id']}`,
-          { documentId: response['document_id'] }
-        );
+      // ✅ CRITICAL FIX: Check response status first before extracting document_id
+      if (response) {
+        // Handle error responses from backend (status: "error" is not in UploadResponse type but backend sends it)
+        if ((response['status'] as string) === 'error') {
+          const errorMessage = (response['message'] as string) || ((response as unknown) as Record<string, unknown>)['error'] as string || 'Unknown upload error';
+          
+          addLog(
+            'error',
+            'Upload',
+            `Upload failed: ${errorMessage}`,
+            { 
+              fileName: file.name,
+              errorDetails: response,
+              status: response['status']
+            }
+          );
+
+          // Show user-friendly error message
+          addMessage(
+            `Upload failed: ${errorMessage}. Please try again with a valid PDF or DOCX file.`,
+            "system"
+          );
+          
+          // Reset upload state
+          setIsUploading(false);
+          setChatState((prev) => ({
+            ...prev,
+            pendingFile: null,
+          }));
+          
+          return; // Stop processing on error
+        }
+
+        // Handle successful response with document_id
+        if (response['document_id']) {
+          addLog(
+            'success',
+            'Upload',
+            `Document ID received: ${response['document_id']}`,
+            { documentId: response['document_id'] }
+          );
 
         // Add user message about file selection
         addMessage(`File selected: ${file.name}`, "user", {
@@ -1420,8 +1453,9 @@ toast({
         }
 
         // ✅ START POLLING after initiating extraction
-        pollForMetadata(documentId);
+        // Note: Metadata polling will be implemented here
         return;
+        }
       }
       
       // Original logic for when no upload response (fallback)
@@ -1458,18 +1492,36 @@ toast({
       // Check if we already have a document ID - if so, don't restart the process
       if (chatState.documentId) {
         addMessage("File updated. Checking current extraction status...", "system");
-        pollForMetadata(chatState.documentId);
+        // Note: Metadata polling will be implemented here
         return;
       }
 
       // Directly start processing - no mode selection needed
       addMessage("Starting company details extraction...", "system");
       handleAnalysisStart();
-    } catch {
+    } catch (error) {
+      addLog(
+        'error',
+        'Upload',
+        `Error in file upload handling: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { 
+          fileName: file.name,
+          error: error,
+          errorName: error instanceof Error ? error.name : 'UnknownError'
+        }
+      );
+      
       addMessage(
         "Sorry, there was an error selecting your file. Please try again.",
         "system",
       );
+      
+      // Reset upload state on error
+      setIsUploading(false);
+      setChatState((prev) => ({
+        ...prev,
+        pendingFile: null,
+      }));
     }
   };
 
@@ -1613,65 +1665,127 @@ toast({
           () => api.documents.upload(pendingFile, "enhanced")
         );
 
-        if (response && response['document_id']) {
+        if (response) {
+          // Handle error responses from backend (status: "error" is not in UploadResponse type but backend sends it)
+          if ((response['status'] as string) === 'error') {
+            const errorMessage = (response['message'] as string) || ((response as unknown) as Record<string, unknown>)['error'] as string || 'Unknown upload error';
+            
+            addLog(
+              'error',
+              'Upload',
+              `Upload failed in analysis start: ${errorMessage}`,
+              { 
+                fileName: pendingFile.name,
+                errorDetails: response,
+                status: response['status']
+              }
+            );
 
-        // Update chat state
-        setChatState((prev) => ({
-          ...prev,
-          documentId: response['document_id'],
-          isProcessing: false,
-          pendingFile: null, // Clear pending file
-          keywordExtractionStatus: {
-            ...prev.keywordExtractionStatus,
-            isExtracting: false,
-            extractionStep: "Analysis complete",
-          },
-        }));
-
-        // Update session title with document ID now that we have it
-        if (currentSession) {
-          try {
-            await updateSessionWithFileName(pendingFile.name, response['document_id']);
-          } catch {
-            // Session update failed, continuing
-            // Don't block upload flow if session update fails
+            // Show user-friendly error message
+            updateLastMessage(
+              `Upload failed: ${errorMessage}. Please try again with a valid PDF or DOCX file.`
+            );
+            
+            // Reset processing state
+            setChatState((prev) => ({
+              ...prev,
+              isProcessing: false,
+              pendingFile: null,
+            }));
+            
+            return; // Stop processing on error
           }
-        }
 
-        // Update loading message to success
-        updateLastMessage(
-          `Document uploaded successfully! Document ID: ${response['document_id']}. Starting smart categorization and enhanced metadata extraction...`,
-          { fileId: response['document_id'], fileName: pendingFile.name },
-        );
+          // Handle successful response with document_id
+          if (response['document_id']) {
+            // Update chat state
+            setChatState((prev) => ({
+              ...prev,
+              documentId: response['document_id'],
+              isProcessing: false,
+              pendingFile: null, // Clear pending file
+              keywordExtractionStatus: {
+                ...prev.keywordExtractionStatus,
+                isExtracting: false,
+                extractionStep: "Analysis complete",
+              },
+            }));
 
-        moveToNextStep("metadata");
+            // Update session title with document ID now that we have it
+            if (currentSession) {
+              try {
+                await updateSessionWithFileName(pendingFile.name, response['document_id']);
+              } catch {
+                // Session update failed, continuing
+                // Don't block upload flow if session update fails
+              }
+            }
 
-        // Start polling for metadata extraction results
-        try {
-          pollForMetadata(response['document_id']);
-        } catch (error) {
-          addLog(
-            'error',
-            'Polling',
-            `Error calling pollForMetadata: ${error instanceof Error ? error.message : 'Unknown error'}`
+            // Update loading message to success
+            updateLastMessage(
+              `Document uploaded successfully! Document ID: ${response['document_id']}. Starting smart categorization and enhanced metadata extraction...`,
+              { fileId: response['document_id'], fileName: pendingFile.name },
+            );
+
+            moveToNextStep("metadata");
+
+            // Start polling for metadata extraction results
+            try {
+              pollForMetadata(response['document_id']);
+            } catch (error) {
+              addLog(
+                'error',
+                'Polling',
+                `Error calling pollForMetadata: ${error instanceof Error ? error.message : 'Unknown error'}`
+              );
+            }
+          } else {
+            addLog('error', 'Upload', 'No document_id in successful response');
+            updateLastMessage(
+              "Upload completed but no document ID received. Please try uploading again."
+            );
+            setChatState((prev) => ({
+              ...prev,
+              isProcessing: false,
+              pendingFile: null,
+            }));
+          }
+        } else {
+          addLog('error', 'Upload', 'No response received from upload');
+          updateLastMessage(
+            "Upload failed - no response received. Please try again."
           );
+          setChatState((prev) => ({
+            ...prev,
+            isProcessing: false,
+            pendingFile: null,
+          }));
         }
-      } else {
-        addLog('error', 'Upload', 'No document_id in response or response is null');
-      }
-    } catch {
-      // Error handling - logging removed for linting
+    } catch (error) {
+      addLog(
+        'error',
+        'Analysis',
+        `Error starting analysis: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { 
+          fileName: pendingFile?.name,
+          error: error,
+          errorName: error instanceof Error ? error.name : 'UnknownError'
+        }
+      );
+      
       setChatState((prev) => ({
         ...prev,
         isProcessing: false,
+        pendingFile: null,
       }));
-      addMessage(
-        "Sorry, there was an error starting the analysis. Please try again.",
-        "system",
+      
+      updateLastMessage(
+        "Sorry, there was an error starting the analysis. Please try again."
       );
     }
   };
 
+  // Define pollForMetadata function
   const pollForMetadata = async (documentId: string, currentAttempt: number = 1) => {
     const maxAttempts = 30; // Maximum 30 attempts (60 seconds at 2-second intervals)
     
@@ -2485,6 +2599,7 @@ You can review and edit these details in the side panel before proceeding to fra
     } else {
       // Go back to the previous step (metadata)
       moveToPreviousStep("framework-selection");
+
     }
   };
 
@@ -2508,29 +2623,23 @@ You can review and edit these details in the side panel before proceeding to fra
       customInstructions: instructions,
     }));
 
-    // Add user message to chat
+    // Batch user and system messages to avoid overlap
+    const systemMsg = instructions.trim()
+      ? `✅ **Custom Instructions Received**\n\n📝 **Your Instructions:** "${instructions}"\n\n🚀 **Starting Enhanced Analysis**\nI'll incorporate your specific requirements into the compliance analysis. This will ensure the results focus on your areas of interest.\n\n⏱️ **Processing Time:** 10-15 minutes with custom focus areas`
+      : `✅ **Proceeding with Standard Analysis**\n\n🚀 **Starting Compliance Analysis**\nI'll perform a comprehensive analysis of your document against the selected accounting standards.\n\n⏱️ **Processing Time:** 10-15 minutes`;
+
+    // Add both messages in sequence with a slight delay to ensure correct rendering order
     addMessage(instructions, "user");
-
-    // Add system response and move to analysis
-    if (instructions.trim()) {
-      addMessage(
-        `✅ **Custom Instructions Received**\n\n📝 **Your Instructions:** "${instructions}"\n\n🚀 **Starting Enhanced Analysis**\nI'll incorporate your specific requirements into the compliance analysis. This will ensure the results focus on your areas of interest.\n\n⏱️ **Processing Time:** 10-15 minutes with custom focus areas`,
-        "system",
+    setTimeout(() => {
+      addMessage(systemMsg, "system");
+      // Move to analysis and start the process after system message
+      moveToNextStep("analysis");
+      startComplianceAnalysis(
+        currentDocumentId || undefined,
+        currentFramework || undefined,
+        currentStandards
       );
-    } else {
-      addMessage(
-        `✅ **Proceeding with Standard Analysis**\n\n🚀 **Starting Compliance Analysis**\nI'll perform a comprehensive analysis of your document against the selected accounting standards.\n\n⏱️ **Processing Time:** 10-15 minutes`,
-        "system",
-      );
-    }
-
-    // Move to analysis and start the process
-    moveToNextStep("analysis");
-    startComplianceAnalysis(
-      currentDocumentId || undefined,
-      currentFramework || undefined,
-      currentStandards
-    );
+    }, 50);
   };
 
   const handleEditFrameworkSelection = () => {
@@ -3281,6 +3390,22 @@ You can expand each section below to review detailed findings, evidence, and sug
                 />
               </div>
             ))}
+            
+            {/* Proceed to Analysis Button for Custom Instructions Step */}
+            {chatState.currentStep?.id === "custom-instructions" && (
+              <div className="flex justify-center py-6">
+                <button
+                  onClick={() => handleCustomInstructionsSubmit("")}
+                  disabled={chatState.isProcessing}
+                  className="bg-gradient-to-r from-[#0087d9] to-[#0ea5e9] hover:from-[#0070c7] hover:to-[#0087d9] text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2"
+                >
+                  <span>Proceed to Analysis</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
 
           <div ref={messagesEndRef} />
