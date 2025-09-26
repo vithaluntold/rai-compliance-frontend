@@ -6,26 +6,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { motion } from "framer-motion";
 import { 
   Plus, 
   MessageSquare, 
   Calendar,
   FileText,
-  MoreVertical,
   Trash2,
-  Archive,
   Edit,
   ChevronLeft,
   ChevronRight,
-  ExternalLink,
   Share2
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { api, Session, SessionDetail } from "@/lib/api-client";
 import { useToast } from "@/components/ui/use-toast";
 import { useTheme } from "@/context/theme-context";
@@ -208,23 +200,7 @@ toast({
     }
   };
 
-  const handleArchiveSession = async (sessionId: string) => {
-    try {
-      await api.sessions.archive(sessionId);
-      await loadSessions();
-      toast({
-        title: "Success",
-        description: "Session archived",
-      });
-    } catch {
-      // // Removed console.error for production
-toast({
-        title: "Error",
-        description: "Failed to archive session",
-        variant: "destructive",
-      });
-    }
-  };
+
 
   const formatDate = (dateString: string) => {
     // Only format dates on client side to prevent hydration mismatches
@@ -252,8 +228,8 @@ toast({
     switch (status) {
       case "active": return "bg-green-100 text-green-800";
       case "completed": return "bg-blue-100 text-blue-800";
-      case "archived": return "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200";
-      default: return "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200";
+      case "archived": return "bg-gray-100 text-gray-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -261,12 +237,11 @@ toast({
     <>
       {/* Toggle Button */}
       <Button
-        className="border h-10 px-3 fixed top-4 left-4 z-50 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-lg border-gray-300 dark:border-white transition-all duration-200 rounded-md dark:text-white"
+        className="border h-10 w-10 fixed top-4 left-4 z-50 bg-[#0087d9] text-white hover:bg-[#0070c7] shadow-lg border-[#0087d9] transition-all duration-200 rounded-md"
         onClick={onToggle}
         title={isOpen ? "Collapse Sessions" : "Expand Sessions"}
       >
         {isOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-        {!isOpen && <span className="ml-2 text-sm font-medium">Sessions</span>}
       </Button>
 
       {/* Sidebar */}
@@ -280,12 +255,15 @@ toast({
           />
           
           {/* Sidebar Content */}
-          <div
-            suppressHydrationWarning
-            className="fixed left-0 top-0 h-full w-[26rem] bg-white dark:bg-black sidebar-panel border-r border-gray-200 dark:border-white z-50 flex flex-col shadow-lg"
+          <motion.div
+            initial={{ x: -400 }}
+            animate={{ x: 0 }}
+            exit={{ x: -400 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="fixed left-0 top-0 h-full w-[26rem] bg-white sidebar-panel border-r border-gray-200 z-50 flex flex-col shadow-lg"
           >
               {/* Header */}
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-[#0087d9]">
+              <div className="p-4 border-b border-gray-200 bg-[#0087d9]">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-white">Sessions</h2>
                   <Button className="bg-transparent h-8 px-2 text-white hover:bg-white/10" onClick={onToggle}>
@@ -309,8 +287,8 @@ toast({
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0087d9]"></div>
                   </div>
                 ) : sessions.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                  <div className="text-center py-8 text-gray-500">
+                    <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                     <p>No sessions yet</p>
                     <p className="text-sm">Create your first analysis session</p>
                   </div>
@@ -320,16 +298,16 @@ toast({
                     {(Array.isArray(sessions) ? sessions : []).map((session) => (
                       <Card
                         key={session.session_id}
-                        className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] dark-card ${
+                        className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
                           session.session_id === currentSessionId 
-                            ? "border-[#0087d9] bg-blue-50 dark:bg-blue-900/30 shadow-md" 
-                            : "border-gray-200 hover:border-[#0087d9]/50 dark:border-gray-600 dark:hover:border-[#0087d9]/50"
+                            ? "border-[#0087d9] bg-blue-50 shadow-md" 
+                            : "border-gray-200 hover:border-[#0087d9]/50"
                         } ${loadingSessionId === session.session_id ? "opacity-50 pointer-events-none" : ""}`}
                         onClick={() => handleSelectSession(session.session_id)}
                       >
                         <CardContent className="p-4">
                           {loadingSessionId === session.session_id && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-black/80 rounded-lg">
+                            <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-lg">
                               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#0087d9]"></div>
                             </div>
                           )}
@@ -382,69 +360,39 @@ toast({
                               </div>
                             </div>
                             
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  className="bg-transparent h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setEditingSession(session.session_id);
-                                    setEditTitle(session.title);
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Rename
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleShareSession(session.session_id, session.title);
-                                  }}
-                                >
-                                  <Share2 className="h-4 w-4 mr-2" />
-                                  Share
-                                </DropdownMenuItem>
-                                {session.status === "active" && (
-                                  <DropdownMenuItem
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleArchiveSession(session.session_id);
-                                    }}
-                                  >
-                                    <Archive className="h-4 w-4 mr-2" />
-                                    Archive
-                                  </DropdownMenuItem>
-                                )}
-                                {session.last_document_id && (
-                                  <DropdownMenuItem
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      window.open(`/results/${session.last_document_id}`, '_blank');
-                                    }}
-                                  >
-                                    <ExternalLink className="h-4 w-4 mr-2" />
-                                    View Results
-                                  </DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteSession(session.session_id, session.title);
-                                  }}
-                                  className="text-red-600"
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <div className="flex items-center space-x-1">
+                              <Button
+                                className="bg-transparent h-7 w-7 p-0 hover:bg-blue-100 text-[#0087d9]"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingSession(session.session_id);
+                                  setEditTitle(session.title);
+                                }}
+                                title="Edit session name"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                className="bg-transparent h-7 w-7 p-0 hover:bg-blue-100 text-[#0087d9]"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleShareSession(session.session_id, session.title);
+                                }}
+                                title="Share session"
+                              >
+                                <Share2 className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                className="bg-transparent h-7 w-7 p-0 hover:bg-red-100 text-red-600"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteSession(session.session_id, session.title);
+                                }}
+                                title="Delete session"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -454,7 +402,7 @@ toast({
               </ScrollArea>
 
 
-            </div>
+            </motion.div>
           </>
         )}
     </>

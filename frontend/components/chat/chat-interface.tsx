@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
+
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ChatMessage } from "./chat-message";
@@ -22,7 +22,7 @@ import {
   validateFrameworkSubmission,
   logFrameworkSelection,
 } from "@/lib/framework-selection-utils";
-import { Moon, Sun, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { 
   XMarkIcon, 
   LightningIcon, 
@@ -281,7 +281,7 @@ export function ChatInterface(): React.JSX.Element {
   });
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
 
   // Upload progress tracking
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -3002,22 +3002,9 @@ You can expand each section below to review detailed findings, evidence, and sug
           }`}
         >
           <div className="flex items-center justify-between">
-            {/* Left section with sessions toggle */}
+            {/* Left section - space for balance */}
             <div className="flex items-center space-x-3 w-60">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowSessionsSidebar(!showSessionsSidebar)}
-                className="flex items-center space-x-2 h-8"
-                title={showSessionsSidebar ? "Hide Sessions" : "Show Sessions"}
-              >
-                {showSessionsSidebar ? (
-                  <ChevronLeft className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-                <span className="text-sm">Sessions</span>
-              </Button>
+              {/* Empty for balance */}
             </div>
             
             {/* Centered logo and tagline */}
@@ -3038,27 +3025,6 @@ You can expand each section below to review detailed findings, evidence, and sug
             </div>
 
             <div className="flex items-center space-x-3">
-              {/* Night Mode Toggle */}
-              <div>
-                <Button
-                  onClick={toggleTheme}
-                  className={`bg-transparent h-8 px-2 ${
-                    theme === "dark"
-                      ? "hover:bg-gray-950 text-gray-400 hover:text-white"
-                      : "hover:bg-gray-100 text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  <div>
-                    {theme === "dark" ? (
-                      <Sun className="h-4 w-4 mr-2" />
-                    ) : (
-                      <Moon className="h-4 w-4 mr-2" />
-                    )}
-                  </div>
-                  {theme === "dark" ? "Light" : "Dark"}
-                </Button>
-              </div>
-
               {/* Network Status Indicator */}
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>

@@ -3,7 +3,7 @@ const DEFAULT_API_URL = "https://rai-compliance-backend.onrender.com";
 const API_VERSION = "v1";
 
 export const API_BASE_URL = process.env['NEXT_PUBLIC_API_URL'] || DEFAULT_API_URL;
-const UPLOAD_PATH = `${API_BASE_URL}/api/${API_VERSION}/upload`;
+const UPLOAD_PATH = `/api/${API_VERSION}/upload`;
 
 // Enhanced loading management (from enhanced-api-client.ts)
 interface LoadingManager {
@@ -181,11 +181,12 @@ export type ComplianceReport = Record<string, unknown>;
 
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   try {
-    // Use the base path from Next.js rewrite rules
+    // Use relative URLs to leverage Next.js rewrite rules for better error handling
     const apiPath = endpoint.startsWith("/api/v1")
       ? endpoint
       : `/api/v1${endpoint}`;
-    const fullUrl = `${API_BASE_URL}${apiPath}`;
+    // Use relative path so Next.js rewrites handle the backend URL
+    const fullUrl = apiPath;
 
     const response = await fetch(fullUrl, {
       ...commonFetchOptions,
@@ -243,11 +244,12 @@ export async function fetchWithLoading(
       }
     }
 
-    // Use the base path from Next.js rewrite rules
+    // Use relative URLs to leverage Next.js rewrite rules for better error handling
     const apiPath = endpoint.startsWith("/api/v1")
       ? endpoint
       : `/api/v1${endpoint}`;
-    const fullUrl = `${API_BASE_URL}${apiPath}`;
+    // Use relative path so Next.js rewrites handle the backend URL
+    const fullUrl = apiPath;
 
     if (operationId && showProgress) {
       globalLoadingManager?.updateProgress(operationId, 30, "Sending request...");
@@ -366,14 +368,7 @@ export const api = {
       }
     },
     get: async (documentId: string): Promise<Document> => {
-      const response = await fetch(
-        `${API_BASE_URL}/api/v1/documents/${documentId}`,
-        commonFetchOptions,
-      );
-      if (!response.ok) {
-        throw new Error("Failed to get document");
-      }
-      const data = await response.json();
+      const data = await fetchApi(`/documents/${documentId}`);
 
       // Helper function to extract value from metadata field (handles both string and object formats)
       const extractMetadataValue = (field: Record<string, unknown> | string | undefined): string => {
@@ -405,14 +400,7 @@ export const api = {
       return response.json();
     },
     getStatus: async (documentId: string): Promise<AnalysisStatus> => {
-      const response = await fetch(
-        `${API_BASE_URL}/api/v1/documents/${documentId}`,
-        commonFetchOptions,
-      );
-      if (!response.ok) {
-        throw new Error("Failed to get document status");
-      }
-      const data = await response.json();
+      const data = await fetchApi(`/documents/${documentId}`);
 
       return {
         status: data.status || "PROCESSING",
@@ -432,14 +420,7 @@ export const api = {
       progress_percentage: number;
       current_keyword?: string;
     }> => {
-      const response = await fetch(
-        `${API_BASE_URL}/api/v1/documents/${documentId}/keywords`,
-        commonFetchOptions,
-      );
-      if (!response.ok) {
-        throw new Error("Failed to get keyword extraction status");
-      }
-      return response.json();
+      return await fetchApi(`/documents/${documentId}/keywords`);
     },
   },
   analysis: {

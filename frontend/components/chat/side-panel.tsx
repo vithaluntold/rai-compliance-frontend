@@ -6,7 +6,11 @@ import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {Progress} from "@/components/ui/progress";
 import {Textarea} from "@/components/ui/textarea";
-import {Collapsible, CollapsibleContent} from "@/components/ui/collapsible";
+import dynamic from "next/dynamic";
+
+// Dynamically import Collapsible components to prevent SSR issues
+const Collapsible = dynamic(() => import("@/components/ui/collapsible").then(mod => ({ default: mod.Collapsible })), { ssr: false });
+const CollapsibleContent = dynamic(() => import("@/components/ui/collapsible").then(mod => ({ default: mod.CollapsibleContent })), { ssr: false });
 import "../../styles/progress-glow.css";
 import {
   Building,
@@ -236,6 +240,23 @@ export function SidePanel({
     }));
   };
 
+  // Auto-collapse completed steps when moving to next step (except progress which is always visible)
+  useEffect(() => {
+    if (chatState.currentStep) {
+      const currentStepId = chatState.currentStep.id;
+      
+      setCollapsedSections(prev => ({
+        ...prev,
+        // Auto-collapse metadata when moving past metadata step
+        metadata: currentStepId !== "metadata" && (currentStepId === "framework-selection" || currentStepId === "processing-mode" || currentStepId === "analysis" || currentStepId === "results"),
+        // Auto-collapse framework when moving to analysis or results
+        framework: currentStepId === "analysis" || currentStepId === "results",
+        // Keep progress and analysis always visible, results only collapse if not on results step
+        results: false, // Results never auto-collapse
+      }));
+    }
+  }, [chatState.currentStep]);
+
   // Update edited metadata when chatState.documentMetadata changes
   useEffect(() => {
     if (chatState.documentMetadata) {
@@ -299,13 +320,18 @@ export function SidePanel({
     className?: string;
     variant?: "default" | "active" | "completed" | "processing";
   }) => {
+    const [isMounted, setIsMounted] = useState(false);
     const isCollapsed = sectionKey ? collapsedSections[sectionKey] : false;
     
+    useEffect(() => {
+      setIsMounted(true);
+    }, []);
+    
     const variantStyles = {
-      default: "bg-white dark:bg-black border-blue-200 dark:border-blue-700",
-      active: "bg-white dark:bg-black border-blue-200 dark:border-blue-700 shadow-lg shadow-blue-500/10",
-      completed: "bg-white dark:bg-black border-blue-200 dark:border-blue-700 shadow-lg shadow-blue-500/10",
-      processing: "bg-white dark:bg-black border-blue-200 dark:border-blue-700 shadow-lg shadow-blue-500/10"
+      default: "bg-blue-50 border-blue-200",
+      active: "bg-blue-50 border-blue-200 shadow-lg shadow-blue-500/10",
+      completed: "bg-blue-50 border-blue-200 shadow-lg shadow-blue-500/10",
+      processing: "bg-blue-50 border-blue-200 shadow-lg shadow-blue-500/10"
     };
 
     const CardContent = () => (
@@ -324,12 +350,12 @@ export function SidePanel({
 
         {/* Header */}
         <div className={`relative z-10 ${collapsible ? 'cursor-pointer' : ''}`} onClick={collapsible && sectionKey ? () => toggleSection(sectionKey) : undefined}>
-          <div className="flex items-center justify-between p-3 border-b border-blue-200 dark:border-blue-700 bg-white/80 dark:bg-black/80 backdrop-blur-sm">
+          <div className="flex items-center justify-between p-3 border-b border-blue-200 bg-white/80 backdrop-blur-sm">
             <div className="flex items-center space-x-3">
               <div className="p-1.5 rounded-md bg-[#0087d9]/10 border border-[#0087d9]/20">
                 <Icon className="w-4 h-4 text-[#0087d9]" />
               </div>
-              <span className="font-semibold text-[#0087d9] dark:text-blue-400">{title}</span>
+              <span className="font-semibold text-[#0087d9]">{title}</span>
               {variant === "processing" && (
                 <div className="flex items-center space-x-1">
                   <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
@@ -352,16 +378,16 @@ export function SidePanel({
         </div>
 
         {/* Content */}
-        {collapsible && sectionKey ? (
+        {collapsible && sectionKey && isMounted ? (
           <Collapsible open={!isCollapsed}>
             <CollapsibleContent>
-              <div className="relative z-10 p-3 bg-white/80 dark:bg-black/80 backdrop-blur-sm">
+              <div className="relative z-10 p-3 bg-white/80 backdrop-blur-sm">
                 {children}
               </div>
             </CollapsibleContent>
           </Collapsible>
         ) : (
-          <div className="relative z-10 p-3 bg-white/80 dark:bg-black/80 backdrop-blur-sm">
+          <div className="relative z-10 p-3 bg-white/80 backdrop-blur-sm">
             {children}
           </div>
         )}
@@ -387,11 +413,11 @@ export function SidePanel({
     disabled?: boolean;
   }) => {
     const variantStyles = {
-      default: "bg-white hover:bg-blue-50 dark:bg-black dark:hover:bg-blue-900/20 text-[#0087d9] dark:text-blue-400 border-blue-200 dark:border-blue-700",
+      default: "bg-white hover:bg-blue-50 text-[#0087d9] border-blue-200",
       primary: "bg-[#0087d9] hover:bg-blue-700 text-white border-[#0087d9] shadow-lg shadow-blue-500/25",
       success: "bg-[#0087d9] hover:bg-blue-700 text-white border-[#0087d9] shadow-lg shadow-blue-500/25",
       warning: "bg-[#0087d9] hover:bg-blue-700 text-white border-[#0087d9] shadow-lg shadow-blue-500/25",
-      danger: "bg-white hover:bg-blue-50 dark:bg-black dark:hover:bg-blue-900/20 text-[#0087d9] dark:text-blue-400 border-blue-200 dark:border-blue-700"
+      danger: "bg-white hover:bg-blue-50 text-[#0087d9] border-blue-200"
     };
 
     const sizeStyles = {
@@ -420,12 +446,12 @@ export function SidePanel({
     );
 
     return (
-      <Card className="p-4 mb-4 bg-white dark:bg-black border-blue-200 dark:border-blue-700">
+      <Card className="p-4 mb-4 bg-white border-blue-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-[#0087d9] rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-[#0087d9] dark:text-blue-400">
+              <span className="text-sm font-medium text-[#0087d9]">
                 Step {currentStepIndex + 1} of {chatSteps.length}
               </span>
             </div>
@@ -472,10 +498,10 @@ export function SidePanel({
                 key={step.id}
                 className={`relative p-2 rounded-lg border transition-all duration-300 ${
                   isCompleted
-                    ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 shadow-sm"
+                    ? "bg-blue-50 border-blue-200 shadow-sm"
                     : isActive
-                      ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 shadow-md shadow-blue-500/20"
-                      : "bg-white dark:bg-black border-blue-200 dark:border-blue-700"
+                      ? "bg-blue-50 border-blue-200 shadow-md shadow-blue-500/20"
+                      : "bg-white border-blue-200"
                 }`}
                 animate={
                   isActive && !isCompleted
@@ -506,7 +532,7 @@ export function SidePanel({
                         ? "bg-[#0087d9] text-white"
                         : isActive
                           ? "bg-[#0087d9] text-white"
-                          : "bg-blue-100 dark:bg-blue-900/50 text-[#0087d9] dark:text-blue-400 border border-blue-200 dark:border-blue-700"
+                          : "bg-blue-100 text-[#0087d9] border border-blue-200"
                     }`}
                   >
                     {isCompleted ? (
@@ -518,16 +544,10 @@ export function SidePanel({
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className={`text-xs font-medium truncate ${
-                      isCompleted
-                        ? "text-[#0087d9] dark:text-blue-400"
-                        : isActive
-                          ? "text-[#0087d9] dark:text-blue-400"
-                          : "text-[#0087d9] dark:text-blue-400"
-                    }`}>
+                    <div className="text-xs font-medium truncate text-[#0087d9]">
                       {step.name}
                     </div>
-                    <div className="text-xs text-[#0087d9]/70 dark:text-blue-400/70 truncate">
+                    <div className="text-xs text-[#0087d9]/70 truncate">
                       {step.detail}
                     </div>
                   </div>
@@ -536,7 +556,7 @@ export function SidePanel({
                 {/* Upload Progress Display */}
                 {step.id === "upload" && isActive && isUploading && (
                   <div className="mt-2">
-                    <div className="text-xs text-[#0087d9] dark:text-blue-400 mb-1">
+                    <div className="text-xs text-[#0087d9] mb-1">
                       {uploadProgress}%
                     </div>
                     <Progress value={uploadProgress} className="h-1" />
@@ -566,7 +586,7 @@ export function SidePanel({
 
                 {/* Upload Error Display */}
                 {step.id === "upload" && uploadError && (
-                  <div className="mt-1 text-xs text-[#0087d9] dark:text-blue-400 flex items-center space-x-1">
+                  <div className="mt-1 text-xs text-[#0087d9]  flex items-center space-x-1">
                     <AlertCircle className="w-3 h-3" />
                     <span className="truncate">{uploadError}</span>
                   </div>
@@ -594,58 +614,58 @@ export function SidePanel({
         <div className="space-y-3">
           {/* File Information Grid */}
           <div className="grid grid-cols-2 gap-2">
-            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-700">
+            <div className="p-2 bg-blue-50  rounded border border-blue-200 ">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-[#0087d9] dark:text-blue-400">Status</span>
+                <span className="text-xs font-medium text-[#0087d9] ">Status</span>
                 <div className="w-2 h-2 bg-[#0087d9] rounded-full animate-pulse"></div>
               </div>
-              <div className="text-xs text-[#0087d9] dark:text-blue-400 font-semibold">Active</div>
+              <div className="text-xs text-[#0087d9]  font-semibold">Active</div>
             </div>
             
-            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-700">
-              <div className="text-xs font-medium text-[#0087d9] dark:text-blue-400 mb-1">ID</div>
-              <div className="text-xs text-[#0087d9] dark:text-blue-400 font-mono bg-white dark:bg-black px-2 py-1 rounded border border-blue-200 dark:border-blue-700 break-all">
+            <div className="p-2 bg-blue-50  rounded border border-blue-200 ">
+              <div className="text-xs font-medium text-[#0087d9]  mb-1">ID</div>
+              <div className="text-xs text-[#0087d9]  font-mono bg-white  px-2 py-1 rounded border border-blue-200  break-all">
                 {chatState.documentId}
               </div>
             </div>
           </div>
 
           {/* Filename Display */}
-          <div className="p-2 bg-white dark:bg-black border border-blue-200 dark:border-blue-700 rounded">
-            <div className="text-xs font-medium text-[#0087d9] dark:text-blue-400 mb-1">Filename</div>
-            <div className="text-xs text-[#0087d9] dark:text-blue-400 font-mono bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded break-all">
+          <div className="p-2 bg-white  border border-blue-200  rounded">
+            <div className="text-xs font-medium text-[#0087d9]  mb-1">Filename</div>
+            <div className="text-xs text-[#0087d9]  font-mono bg-blue-50  px-2 py-1 rounded break-all">
               {chatState.fileName}
             </div>
           </div>
 
           {/* Processing Metrics */}
           <div className="grid grid-cols-3 gap-1 text-center">
-            <div className="p-1.5 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-200 dark:border-blue-700">
+            <div className="p-1.5 bg-blue-50  rounded border border-blue-200 ">
               <Monitor className="w-3 h-3 text-[#0087d9] mx-auto mb-1" />
-              <div className="text-xs text-[#0087d9] dark:text-blue-400 font-semibold">PDF</div>
+              <div className="text-xs text-[#0087d9]  font-semibold">PDF</div>
             </div>
-            <div className="p-1.5 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-200 dark:border-blue-700">
+            <div className="p-1.5 bg-blue-50  rounded border border-blue-200 ">
               <CheckCircle className="w-3 h-3 text-[#0087d9] mx-auto mb-1" />
-              <div className="text-xs text-[#0087d9] dark:text-blue-400 font-semibold">Parsed</div>
+              <div className="text-xs text-[#0087d9]  font-semibold">Parsed</div>
             </div>
-            <div className="p-1.5 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-200 dark:border-blue-700">
+            <div className="p-1.5 bg-blue-50  rounded border border-blue-200 ">
               <Cpu className="w-3 h-3 text-[#0087d9] mx-auto mb-1" />
-              <div className="text-xs text-[#0087d9] dark:text-blue-400 font-semibold">Ready</div>
+              <div className="text-xs text-[#0087d9]  font-semibold">Ready</div>
             </div>
           </div>
 
           {/* System Status - Show circuit breaker status if available */}
           {chatState.currentProgress && (chatState.currentProgress as ProgressData)?.circuit_breaker && (
-            <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-200 dark:border-blue-700">
+            <div className="mt-3 p-2 bg-blue-50  rounded border border-blue-200 ">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-[#0087d9] dark:text-blue-400">AI Service</span>
+                <span className="text-xs font-medium text-[#0087d9] ">AI Service</span>
                 <div className={`w-2 h-2 rounded-full ${
                   (chatState.currentProgress as ProgressData).circuit_breaker?.status === 'closed' 
                     ? 'bg-[#0087d9] animate-pulse' 
                     : 'bg-[#0087d9]/50'
                 }`}></div>
               </div>
-              <div className="text-xs text-[#0087d9] dark:text-blue-400 font-semibold">
+              <div className="text-xs text-[#0087d9]  font-semibold">
                 {(chatState.currentProgress as ProgressData).circuit_breaker?.status === 'closed' 
                   ? 'Operational' 
                   : (chatState.currentProgress as ProgressData).circuit_breaker?.status === 'open'
@@ -680,7 +700,7 @@ export function SidePanel({
         <div className="space-y-3">
           {/* Header with edit button */}
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-[#0087d9] dark:text-blue-400">
+            <span className="text-xs font-medium text-[#0087d9] ">
               {isEditingMetadata ? "Editing Metadata" : "Company Details"}
             </span>
             {!isEditingMetadata && (
@@ -796,38 +816,38 @@ export function SidePanel({
           ) : (
             <div className="space-y-2">
               {!chatState.documentMetadata || Object.values(chatState.documentMetadata).every(val => !getMetadataValue(val)) ? (
-                <div className="text-center py-3 text-[#0087d9] dark:text-blue-400">
+                <div className="text-center py-3 text-[#0087d9] ">
                   <Target className="w-8 h-8 mx-auto mb-2 opacity-50" />
                   <p className="text-xs">No company information available yet.</p>
                   <p className="text-xs mt-1 opacity-75">Click &ldquo;Edit&rdquo; above to add company details manually.</p>
                 </div>
               ) : (
                 <div className="grid gap-2">
-                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-700">
-                    <div className="text-xs font-medium text-[#0087d9] dark:text-blue-400">Company</div>
-                    <div className="text-xs text-[#0087d9] dark:text-blue-400 mt-1 truncate font-medium">
+                  <div className="p-2 bg-blue-50  rounded border border-blue-200 ">
+                    <div className="text-xs font-medium text-[#0087d9] ">Company</div>
+                    <div className="text-xs text-[#0087d9]  mt-1 truncate font-medium">
                       {getMetadataValue(chatState.documentMetadata?.company_name)}
                     </div>
                   </div>
 
-                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-700">
-                    <div className="text-xs font-medium text-[#0087d9] dark:text-blue-400">Business</div>
-                    <div className="text-xs text-[#0087d9] dark:text-blue-400 mt-1 line-clamp-2 font-medium">
+                  <div className="p-2 bg-blue-50  rounded border border-blue-200 ">
+                    <div className="text-xs font-medium text-[#0087d9] ">Business</div>
+                    <div className="text-xs text-[#0087d9]  mt-1 line-clamp-2 font-medium">
                       {getMetadataValue(chatState.documentMetadata?.nature_of_business)}
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-700">
-                      <div className="text-xs font-medium text-[#0087d9] dark:text-blue-400">Geography</div>
-                      <div className="text-xs text-[#0087d9] dark:text-blue-400 mt-1 truncate font-medium">
+                    <div className="p-2 bg-blue-50  rounded border border-blue-200 ">
+                      <div className="text-xs font-medium text-[#0087d9] ">Geography</div>
+                      <div className="text-xs text-[#0087d9]  mt-1 truncate font-medium">
                         {getMetadataValue(chatState.documentMetadata?.operational_demographics)}
                       </div>
                     </div>
 
-                    <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-700">
-                      <div className="text-xs font-medium text-[#0087d9] dark:text-blue-400">Statement</div>
-                      <div className="text-xs text-[#0087d9] dark:text-blue-400 mt-1 truncate font-medium">
+                    <div className="p-2 bg-blue-50  rounded border border-blue-200 ">
+                      <div className="text-xs font-medium text-[#0087d9] ">Statement</div>
+                      <div className="text-xs text-[#0087d9]  mt-1 truncate font-medium">
                         {getMetadataValue(chatState.documentMetadata?.financial_statements_type)}
                       </div>
                     </div>
@@ -922,7 +942,7 @@ export function SidePanel({
     const progressData = chatState.currentProgress as ProgressData | undefined;
 
     return (
-      <Card className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 shadow-lg">
+      <Card className="p-4 bg-blue-50  border border-blue-200  shadow-lg">
         <h3 className="font-semibold mb-4 text-[#0087d9] flex items-center space-x-2">
           <BarChart3 className="w-4 h-4" />
           <span>Analysis Progress</span>
@@ -942,7 +962,7 @@ export function SidePanel({
 
         {/* Circuit Breaker Status Indicator */}
         {progressData?.circuit_breaker && progressData.circuit_breaker.status !== 'closed' && (
-          <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-600 rounded-lg">
+          <div className="mb-4 p-3 bg-blue-100  border border-blue-300 dark:border-blue-600 rounded-lg">
             <div className="flex items-center space-x-2 mb-2">
               <motion.div
                 animate={{ rotate: [0, 360] }}
@@ -952,7 +972,7 @@ export function SidePanel({
               </motion.div>
               <span className="text-sm font-semibold text-[#0087d9]">AI Service Protection Active</span>
             </div>
-            <div className="text-xs text-[#0087d9] dark:text-blue-400">
+            <div className="text-xs text-[#0087d9] ">
               {progressData.circuit_breaker.status === 'open' && (
                 <div className="flex items-center space-x-1">
                   <AlertTriangle className="w-3 h-3" />
@@ -968,16 +988,16 @@ export function SidePanel({
                 </div>
               )}
             </div>
-            <div className="mt-2 text-xs text-[#0087d9]/70 dark:text-blue-400/70">
+            <div className="mt-2 text-xs text-[#0087d9]/70 /70">
               The system automatically protects against service overload. Analysis will continue once service recovers.
             </div>
           </div>
         )}
 
         {progressData && (
-          <div className="mb-4 p-4 bg-white dark:bg-black rounded-xl shadow-sm border border-blue-200 dark:border-blue-700">
+          <div className="mb-4 p-4 bg-white  rounded-xl shadow-sm border border-blue-200 ">
             <div className="flex justify-between items-center mb-3">
-              <span className="text-sm font-semibold text-[#0087d9] dark:text-blue-400">Overall Progress</span>
+              <span className="text-sm font-semibold text-[#0087d9] ">Overall Progress</span>
               <div className="flex items-center space-x-2">
                 <motion.div
                   className="w-2 h-2 bg-blue-400 rounded-full"
@@ -990,7 +1010,7 @@ export function SidePanel({
                     ease: "easeInOut",
                   }}
                 />
-                <span className="text-sm text-blue-600 dark:text-blue-400 font-mono">
+                <span className="text-sm text-blue-600  font-mono">
                   {progressData.overall_progress?.elapsed_time_formatted || "0s"}
                 </span>
               </div>
@@ -1004,16 +1024,16 @@ export function SidePanel({
               className="h-3 mb-3"
             />
             <div className="flex justify-between items-center text-xs">
-              <span className="text-[#0087d9] dark:text-blue-400">
+              <span className="text-[#0087d9] ">
                 {progressData.questions?.completed || 0} / {progressData.questions?.total || 0} questions answered
               </span>
-              <span className="text-[#0087d9] dark:text-blue-400 font-semibold">
+              <span className="text-[#0087d9]  font-semibold">
                 {Math.round(progressData.overall_progress?.percentage || progressData.percentage || 0)}%
               </span>
             </div>
             {(progressData.overall_progress?.current_standard ||
               progressData.currentStandard) && (
-              <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+              <div className="mt-2 p-2 bg-blue-50  rounded-lg">
                 <div className="text-xs text-blue-700 dark:text-blue-300 font-medium">
                   Currently processing:
                 </div>
@@ -1070,17 +1090,17 @@ export function SidePanel({
                   <span className="font-medium">{standard}</span>
                   <div className="flex items-center space-x-2">
                     {standardProgress?.elapsed_time_formatted && (
-                      <span className="text-xs text-[#0087d9] dark:text-blue-400">
+                      <span className="text-xs text-[#0087d9] ">
                         {standardProgress.elapsed_time_formatted}
                       </span>
                     )}
                     <motion.span
                       className={`text-xs px-2 py-1 rounded ${
                         isCompleted
-                          ? "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
+                          ? "bg-blue-100 text-blue-800  "
                           : isProcessing
-                            ? "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
-                            : "bg-blue-50 text-[#0087d9] dark:bg-blue-900/10 dark:text-blue-400"
+                            ? "bg-blue-100 text-blue-800  "
+                            : "bg-blue-50 text-[#0087d9] dark:bg-blue-900/10 "
                       }`}
                       animate={
                         isProcessing
@@ -1104,11 +1124,11 @@ export function SidePanel({
                   </div>
                 </div>
                 <Progress value={progressPercentage} className="h-2 mb-1" />
-                <div className="text-xs text-[#0087d9] dark:text-blue-400">
+                <div className="text-xs text-[#0087d9] ">
                   {questionInfo} questions
                   {standardProgress?.current_question && isProcessing && (
                     <motion.div 
-                      className="mt-1 text-blue-600 dark:text-blue-400 truncate current-question-pulse"
+                      className="mt-1 text-blue-600  truncate current-question-pulse"
                       animate={{
                         opacity: [0.7, 1, 0.7],
                       }}
@@ -1127,7 +1147,7 @@ export function SidePanel({
           })}
         </div>
 
-        <div className="mt-3 text-xs text-[#0087d9] dark:text-blue-400">
+        <div className="mt-3 text-xs text-[#0087d9] ">
           This may take a few minutes depending on document complexity.
         </div>
       </Card>
@@ -1166,7 +1186,7 @@ export function SidePanel({
     const compliancePercentage = totalItems > 0 ? Math.round((compliantItems / totalItems) * 100) : 0;
 
     return (
-      <Card className="p-4 mb-4 bg-white dark:bg-black border-blue-200 dark:border-blue-700">
+      <Card className="p-4 mb-4 bg-white  border-blue-200 ">
         <h3 className="font-semibold mb-3 text-[#0087d9]">Results Summary</h3>
 
         <div className="space-y-3">
@@ -1174,7 +1194,7 @@ export function SidePanel({
             <div className="text-3xl font-bold text-[#0087d9] mb-1">
               {compliancePercentage}%
             </div>
-            <div className="text-sm text-[#0087d9] dark:text-blue-400">
+            <div className="text-sm text-[#0087d9] ">
               Overall Compliance
             </div>
           </div>
@@ -1186,19 +1206,19 @@ export function SidePanel({
               <div className="text-lg font-semibold text-[#0087d9]">
                 {compliantItems}
               </div>
-              <div className="text-xs text-[#0087d9] dark:text-blue-400">Yes</div>
+              <div className="text-xs text-[#0087d9] ">Yes</div>
             </div>
             <div>
               <div className="text-lg font-semibold text-[#0087d9]">
                 {nonCompliantItems}
               </div>
-              <div className="text-xs text-[#0087d9] dark:text-blue-400">No</div>
+              <div className="text-xs text-[#0087d9] ">No</div>
             </div>
             <div>
-              <div className="text-lg font-semibold text-[#0087d9] dark:text-blue-400">
+              <div className="text-lg font-semibold text-[#0087d9] ">
                 {totalItems}
               </div>
-              <div className="text-xs text-[#0087d9] dark:text-blue-400">Total</div>
+              <div className="text-xs text-[#0087d9] ">Total</div>
             </div>
           </div>
         </div>
@@ -1212,7 +1232,7 @@ export function SidePanel({
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 384, opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="fixed right-0 top-0 h-full w-[26rem] code-panel bg-white dark:bg-black border-l border-blue-200 dark:border-blue-700 overflow-y-auto z-50"
+      className="fixed right-0 top-0 h-full w-[26rem] code-panel bg-white  border-l border-blue-200  overflow-y-auto z-50"
     >
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
@@ -1234,3 +1254,4 @@ export function SidePanel({
     </motion.div>
   );
 }
+
