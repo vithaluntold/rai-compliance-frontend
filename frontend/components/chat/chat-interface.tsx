@@ -2490,13 +2490,6 @@ You can review and edit these details in the side panel before proceeding to fra
     }
   };
 
-  const handleCustomInstructionsChange = (instructions: string) => {
-    setChatState((prev) => ({
-      ...prev,
-      customInstructions: instructions,
-    }));
-  };
-
   const handleCustomInstructionsSubmit = (instructions: string) => {
     // Save custom instructions to state
     setChatState((prev) => ({
@@ -3479,7 +3472,6 @@ You can expand each section below to review detailed findings, evidence, and sug
             onClearAllStandards={handleClearAllStandards}
             onFrameworkContinue={handleFrameworkContinue}
             onFrameworkBack={handleFrameworkBack}
-            onCustomInstructionsChange={handleCustomInstructionsChange}
           />
           </>
         )}
