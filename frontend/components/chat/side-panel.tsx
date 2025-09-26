@@ -861,10 +861,11 @@ export function SidePanel({
   };
 
   const renderFrameworkSelection = () => {
-    // Show framework selection panel when on framework-selection step OR analysis step
-    // This keeps the framework visible during processing
+    // Show framework selection panel when on framework-selection step, custom-instructions step, OR analysis step
+    // This keeps the framework visible during processing and allows review during custom instructions
     if (chatState.currentStep?.id === "framework-selection" || 
         chatState.currentStep?.id === "processing-mode" ||
+        (chatState.currentStep?.id as string) === "custom-instructions" ||
         chatState.currentStep?.id === "analysis") {
       return (
         <div className="mb-4">
@@ -884,8 +885,9 @@ export function SidePanel({
             onContinue={onFrameworkContinue || (() => {})}
             onBack={onFrameworkBack || (() => {})}
             onCustomInstructionsChange={onCustomInstructionsChange || (() => {})}
-            // Disable editing during analysis and custom instructions step
-            disabled={chatState.currentStep?.id === "analysis" || chatState.currentStep?.id === "custom-instructions"}
+            // Disable "Start Analysis" button during analysis and custom instructions step
+            // But allow framework/standards editing during custom instructions
+            disabled={chatState.currentStep?.id === "analysis" || (chatState.currentStep?.id as string) === "custom-instructions"}
           />
         </div>
       );

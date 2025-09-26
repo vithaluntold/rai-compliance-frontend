@@ -29,6 +29,8 @@ export function KeywordExtractionDisplay({
       const timer = setTimeout(() => setPulseAnimation(false), 500);
       return () => clearTimeout(timer);
     }
+    // Return empty cleanup function for the else case
+    return () => {};
   }, [keywords]);
 
   if (!isExtracting && keywords.length === 0) {
