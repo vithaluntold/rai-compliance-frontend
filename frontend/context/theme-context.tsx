@@ -2,7 +2,6 @@
 
 import React, { createContext, useState, useContext, useEffect } from "react";
 
-
 type Theme = "light" | "dark";
 
 interface ThemeContextType {
@@ -18,70 +17,68 @@ export function CustomThemeProvider({
 }: {
   children: React.ReactNode;
 }) {
+  // Always start with light theme to ensure SSR/client consistency
   const [theme, setTheme] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // Load theme from localStorage on mount
+  // Only run on client after hydration is complete
   useEffect(() => {
+    // Mark as hydrated first to prevent render differences
+    setIsHydrated(true);
+    
+    // Then load theme preferences
     try {
       const savedTheme = localStorage.getItem("rai-theme") as Theme;
       if (savedTheme && (savedTheme === "light" || savedTheme === "dark")) {
         setTheme(savedTheme);
       } else {
-        // Check system preference
-        const prefersDark = window.matchMedia(
-          "(prefers-color-scheme: dark)",
-        ).matches;
-        setTheme(prefersDark ? "dark" : "light");
+        // Check system preference only after hydration
+        if (typeof window !== "undefined" && window.matchMedia) {
+          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          setTheme(prefersDark ? "dark" : "light");
+        }
       }
     } catch {
-      // Fallback if localStorage is not available
-      
+      // Keep default light theme on any error
       setTheme("light");
     }
-    setMounted(true);
   }, []);
 
-  // Update localStorage and document class when theme changes
+  // Update localStorage and document class when theme changes (only after hydration)
   useEffect(() => {
-    if (mounted) {
+    if (isHydrated) {
       try {
         localStorage.setItem("rai-theme", theme);
         if (typeof document !== "undefined") {
           document.documentElement.classList.toggle("dark", theme === "dark");
         }
       } catch {
-        // Ignore localStorage errors
+        // Ignore localStorage errors silently
       }
     }
-  }, [theme, mounted]);
+  }, [theme, isHydrated]);
+
+  const handleSetTheme = (newTheme: Theme) => {
+    setTheme(newTheme);
+  };
 
   const toggleTheme = () => {
     setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
   };
 
-  // Provide default context during hydration to prevent errors
+  // Always provide consistent context value (no conditional rendering)
   const contextValue = {
-    theme: mounted ? theme : "light",
-    setTheme,
+    theme,
+    setTheme: handleSetTheme,
     toggleTheme,
   };
 
-  // Prevent hydration mismatch by not rendering children until mounted
-  if (!mounted) {
-    return (
-      <div suppressHydrationWarning className="hidden-loader">
-        <ThemeContext.Provider value={contextValue}>
-          {children}
-        </ThemeContext.Provider>
-      </div>
-    );
-  }
-
   return (
-    <ThemeContext.Provider value={contextValue}>
-      {children}
-    </ThemeContext.Provider>
+    <div suppressHydrationWarning>
+      <ThemeContext.Provider value={contextValue}>
+        {children}
+      </ThemeContext.Provider>
+    </div>
   );
 }
 
