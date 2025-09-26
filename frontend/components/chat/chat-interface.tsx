@@ -2348,15 +2348,32 @@ You can review and edit these details in the side panel before proceeding to fra
   };
 
   const handleFrameworkContinue = async () => {
+    console.log('🚀 handleFrameworkContinue called', {
+      frameworkStep,
+      selectedFramework, 
+      selectedStandards,
+      documentId: chatState.documentId
+    });
+    
     // This function is now only used for the standards step (Start Analysis)
     if (frameworkStep === "standards") {
+      console.log('✅ Framework step is standards, proceeding with analysis');
       // Validate framework submission
+      console.log('🔍 About to validate framework submission', {
+        frameworkStep,
+        selectedFramework,
+        selectedStandards,
+        frameworks: frameworks?.length || 0
+      });
+      
       const validationError = validateFrameworkSubmission(
         frameworkStep,
         selectedFramework,
         selectedStandards,
         frameworks,
       );
+
+      console.log('📋 Validation result:', validationError);
 
       if (validationError) {
         setFrameworkError(validationError);
@@ -2396,11 +2413,19 @@ You can review and edit these details in the side panel before proceeding to fra
 
         // Move to analysis step and start compliance analysis directly
         moveToNextStep("analysis");
+        
+        console.log('🎯 About to call startComplianceAnalysis', {
+          documentId: chatState.documentId,
+          selectedFramework,
+          selectedStandards
+        });
+        
         await startComplianceAnalysis(chatState.documentId!, selectedFramework, selectedStandards);
 
         // Reset framework form state on success
         setFrameworkStep("framework");
       } catch (error: unknown) {
+        console.error('❌ Error in handleFrameworkContinue:', error);
         const errorMessage = error instanceof Error ? error.message : "Could not submit framework selection";
         addLog(
           'error',
@@ -2413,6 +2438,9 @@ You can review and edit these details in the side panel before proceeding to fra
       } finally {
         setIsFrameworkSubmitting(false);
       }
+    } else {
+      console.log('❌ Framework step is not standards, current step:', frameworkStep);
+      addMessage(`Debug: Framework step is "${frameworkStep}", expected "standards"`, "system");
     }
   };
 
