@@ -159,7 +159,6 @@ interface SidePanelProps {
   onClearAllStandards?: () => void;
   onFrameworkContinue?: () => void;
   onFrameworkBack?: () => void;
-  onCustomInstructionsChange?: (instructions: string) => void;
   // Analysis mode props
   onAnalysisModeToggle?: (mode: "zap" | "comprehensive") => void;
 }
@@ -187,7 +186,6 @@ export function SidePanel({
   onClearAllStandards,
   onFrameworkContinue,
   onFrameworkBack,
-  onCustomInstructionsChange,
 }: SidePanelProps) {
   // Connect to global theme context (theme automatically applied to document)
   useTheme();
@@ -873,7 +871,6 @@ export function SidePanel({
             frameworks={frameworks || []}
             selectedFramework={selectedFramework || ""}
             selectedStandards={selectedStandards || []}
-            customInstructions={chatState.customInstructions || ""}
             isLoading={isFrameworkLoading || false}
             isSubmitting={isFrameworkSubmitting || false}
             error={frameworkError || null}
@@ -884,10 +881,11 @@ export function SidePanel({
             onClearAll={onClearAllStandards || (() => {})}
             onContinue={onFrameworkContinue || (() => {})}
             onBack={onFrameworkBack || (() => {})}
-            onCustomInstructionsChange={onCustomInstructionsChange || (() => {})}
-            // Disable "Start Analysis" button during analysis and custom instructions step
-            // But allow framework/standards editing during custom instructions
-            disabled={chatState.currentStep?.id === "analysis" || (chatState.currentStep?.id as string) === "custom-instructions"}
+            // Disable "Start Analysis" button during analysis step only
+            // Allow framework/standards editing during custom instructions step  
+            disabled={chatState.currentStep?.id === "analysis"}
+            // Hide analysis button during custom-instructions step (will be triggered from chat)
+            hideAnalysisButton={chatState.currentStep?.id === "custom-instructions"}
           />
         </div>
       );

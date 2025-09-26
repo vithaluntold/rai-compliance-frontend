@@ -7,7 +7,7 @@ import {Checkbox} from "@/components/ui/checkbox";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
 import {Label} from "@/components/ui/label";
 import {ScrollArea} from "@/components/ui/scroll-area";
-import {Textarea} from "@/components/ui/textarea";
+
 import { motion } from "framer-motion";
 import {
   Framework,
@@ -19,19 +19,18 @@ interface FrameworkSelectionPanelProps {
   selectedFramework: string;
   selectedStandards: string[];
   aiSuggestedStandards?: string[];
-  customInstructions?: string;
   isLoading?: boolean;
   isSubmitting?: boolean;
   error?: string | null;
   step: "framework" | "standards";
   disabled?: boolean;
+  hideAnalysisButton?: boolean;
   onFrameworkSelect: (frameworkId: string) => void;
   onStandardToggle: (standardId: string) => void;
   onSelectAll: () => void;
   onClearAll: () => void;
   onContinue: () => void;
   onBack: () => void;
-  onCustomInstructionsChange?: (instructions: string) => void;
 }
 
 export default function FrameworkSelectionPanel({
@@ -39,19 +38,18 @@ export default function FrameworkSelectionPanel({
   selectedFramework,
   selectedStandards,
   aiSuggestedStandards = [],
-  customInstructions = "",
   isLoading = false,
   isSubmitting = false,
   error = null,
   step,
   disabled = false,
+  hideAnalysisButton = false,
   onFrameworkSelect,
   onStandardToggle,
   onSelectAll,
   onClearAll,
   onContinue,
   onBack,
-  onCustomInstructionsChange,
 }: FrameworkSelectionPanelProps) {
   // Calculate available standards based on selected framework
   const { availableStandards } = updateAvailableStandards(
@@ -258,60 +256,32 @@ export default function FrameworkSelectionPanel({
         </div>
       </ScrollArea>
 
-      {/* Custom Instructions Section */}
-      <div className="pt-4 border-t border-gray-200">
-        <div className="mb-3">
-          <h5 className="text-sm font-medium text-gray-900 mb-1">
-            Custom Analysis Instructions (Optional)
-          </h5>
-          <p className="text-xs text-gray-600">
-            Provide specific instructions for the AI model to focus on during analysis. These instructions will be included with each compliance check.
-          </p>
-        </div>
-        
-        <Textarea
-          placeholder="e.g., Focus on risk assessment disclosures, pay attention to related party transactions, emphasize materiality thresholds..."
-          value={customInstructions}
-          onChange={(e) => onCustomInstructionsChange?.(e.target.value)}
-          disabled={disabled}
-          className="min-h-[80px] text-sm resize-none"
-          maxLength={500}
-        />
-        
-        <div className="flex justify-between items-center mt-1">
-          <span className="text-xs text-gray-500">
-            {customInstructions.length}/500 characters
-          </span>
-          {customInstructions.length > 0 && (
-            <span className="text-xs text-blue-600">
-              ✓ Custom instructions will be applied
-            </span>
-          )}
-        </div>
-      </div>
+
 
       <div className="flex justify-between pt-4">
         <Button onClick={onBack} className="border text-gray-600" disabled={disabled}>
           <X className="mr-2 h-4 w-4" />
           Back
         </Button>
-        <Button
-          onClick={onContinue}
-          disabled={!canContinue || isSubmitting || disabled}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              Start Analysis
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </>
-          )}
-        </Button>
+        {!hideAnalysisButton && (
+          <Button
+            onClick={onContinue}
+            disabled={!canContinue || isSubmitting || disabled}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                Start Analysis
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </>
+            )}
+          </Button>
+        )}
       </div>
     </motion.div>
   );
