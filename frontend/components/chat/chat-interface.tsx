@@ -265,6 +265,7 @@ export function ChatInterface(): React.JSX.Element {
     selectedStandards: [],
     aiSuggestedStandards: [], // Initialize AI suggestions
     specialInstructions: "",
+    customInstructions: "", // Initialize custom instructions
     analysisResults: null,
     isProcessing: false,
     // Enhanced geographical processing mode
@@ -301,6 +302,12 @@ export function ChatInterface(): React.JSX.Element {
       {
         id: "framework-selection",
         name: "Framework Selection",
+        completed: false,
+        active: false,
+      },
+      {
+        id: "custom-instructions",
+        name: "Custom Instructions",
         completed: false,
         active: false,
       },
@@ -2023,8 +2030,9 @@ You can review and edit these details in the side panel before proceeding to fra
   const moveToPreviousStep = (stepId: string) => {
     const steps = [
       "upload",
-      "metadata",
+      "metadata", 
       "framework-selection",
+      "custom-instructions",
       "analysis",
       "results",
     ];
@@ -2095,12 +2103,11 @@ You can review and edit these details in the side panel before proceeding to fra
       moveToNextStep("analysis");
       await startComplianceAnalysis(chatState.documentId!, framework, standards);
     } catch (error: unknown) {
-      addLog('error', 'Framework', 'Framework selection error', { error: error instanceof Error ? error.message : String(error) });
-      setChatState((prev) => ({ ...prev, isProcessing: false }));
-
-      // Extract error message
+      // Extract error message and determine error type first
       let errorMessage = "Failed to select framework";
       let isDocumentNotFound = false;
+      
+      setChatState((prev) => ({ ...prev, isProcessing: false }));
 
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { data?: { detail?: string; message?: string } } };
@@ -2109,20 +2116,24 @@ You can review and edit these details in the side panel before proceeding to fra
         }
       } else if (error instanceof Error) {
         errorMessage += `: ${error.message}`;
-        // Check if it's a document not found error
+        // Only treat as document not found if it's explicitly about document expiry/deletion
+        // Don't reset documentId for temporary backend/AI failures
         isDocumentNotFound = error.message
           .toLowerCase()
-          .includes("document not found");
+          .includes("document not found") && 
+          (error.message.toLowerCase().includes("expired") || 
+           error.message.toLowerCase().includes("deleted") ||
+           error.message.toLowerCase().includes("invalid document id"));
       }
 
       if (isDocumentNotFound) {
-        // Special handling for document not found - likely session expired
+        // Special handling for actual document expiry/deletion - not temporary failures
         addMessage(
-          "It looks like your document session has expired or the server was restarted. Please upload your document again to continue.",
+          "Your document session has expired or been deleted. Please upload your document again to continue.",
           "system",
         );
 
-        // Reset to upload step
+        // Reset to upload step only for true document expiry
         moveToNextStep("upload");
         setChatState((prev) => ({
           ...prev,
@@ -2137,17 +2148,27 @@ You can review and edit these details in the side panel before proceeding to fra
           variant: "destructive",
         });
       } else {
+        // For non-document-expiry errors, provide helpful retry guidance
         addMessage(
-          `Sorry, there was an error selecting the framework: ${errorMessage}. Please try again.`,
+          `⚠️ **Temporary Analysis Issue**\n\n🔧 **Error:** ${errorMessage}\n📊 **Your Progress:** Document and selections are preserved\n🔄 **Next Steps:** Please try selecting your framework again\n\n*This appears to be a temporary service issue. Your document and previous selections are safe.*`,
           "system",
         );
 
         toast({
-          title: "Framework Selection Error",
-          description: errorMessage,
+          title: "Temporary Service Issue",
+          description: "Please try again - your progress is saved",
           variant: "destructive",
         });
       }
+
+      // Enhanced logging after error processing
+      addLog('error', 'Framework', 'Framework selection error', { 
+        error: error instanceof Error ? error.message : String(error),
+        documentId: chatState.documentId,
+        isDocumentExpired: isDocumentNotFound,
+        hasDocumentId: !!chatState.documentId,
+        errorType: isDocumentNotFound ? 'document_expired' : 'temporary_failure'
+      });
     }
   };
 
@@ -2265,6 +2286,13 @@ You can review and edit these details in the side panel before proceeding to fra
               `Perfect! I've pre-selected ${suggestedStandardIds.length} recommended standards from ${availableStandardsCount} available standards. You can review, modify, or add more standards from the checklist on the right.`,
               "system",
             );
+
+            // 🎯 CUSTOM INSTRUCTIONS INVITATION - Move to custom instructions step
+            moveToNextStep("custom-instructions");
+            addMessage(
+              `🎯 **Ready for Analysis Setup!**\n\n📋 **Framework:** ${framework.name}\n📊 **Standards Selected:** ${suggestedStandardIds.length} accounting standards\n\n💡 **Want to add specific instructions?**\nYou can now provide custom instructions for the analysis if you have specific areas of focus, concerns, or requirements. For example:\n• "Focus on revenue recognition policies"\n• "Pay special attention to lease accounting"\n• "Highlight any ESG reporting gaps"\n\n✍️ **Type your custom instructions below, or simply click "Proceed to Analysis" to continue with standard analysis.**`,
+              "system",
+            );
           } else {
             // Handle case where no suggestions were returned (could be fallback response)
             const fallbackMessage = suggestedStandards?.['business_context'] || 
@@ -2274,7 +2302,13 @@ You can review and edit these details in the side panel before proceeding to fra
               `ℹ️ ${fallbackMessage}`,
               "system",
             );
-            // Standards step already set at the beginning of framework selection
+            
+            // 🎯 CUSTOM INSTRUCTIONS INVITATION - Even without AI suggestions
+            moveToNextStep("custom-instructions");
+            addMessage(
+              `🎯 **Ready for Analysis Setup!**\n\n📋 **Framework:** ${framework.name}\n📊 **Standards:** Please select standards from the checklist\n\n💡 **Want to add specific instructions?**\nYou can now provide custom instructions for the analysis if you have specific areas of focus, concerns, or requirements. For example:\n• "Focus on revenue recognition policies"\n• "Pay special attention to lease accounting"\n• "Highlight any ESG reporting gaps"\n\n✍️ **Type your custom instructions below, or simply click "Proceed to Analysis" to continue with standard analysis.**`,
+              "system",
+            );
           }
         } catch (suggestionError: unknown) {
           addLog('error', 'AI', 'Standards suggestion error', { 
@@ -2348,7 +2382,7 @@ You can review and edit these details in the side panel before proceeding to fra
   };
 
   const handleFrameworkContinue = async () => {
-    console.log('🚀 handleFrameworkContinue called', {
+    addLog('info', 'Framework', 'handleFrameworkContinue called', {
       frameworkStep,
       selectedFramework, 
       selectedStandards,
@@ -2357,9 +2391,9 @@ You can review and edit these details in the side panel before proceeding to fra
     
     // This function is now only used for the standards step (Start Analysis)
     if (frameworkStep === "standards") {
-      console.log('✅ Framework step is standards, proceeding with analysis');
+      addLog('info', 'Framework', 'Framework step is standards, proceeding with analysis');
       // Validate framework submission
-      console.log('🔍 About to validate framework submission', {
+      addLog('info', 'Framework', 'About to validate framework submission', {
         frameworkStep,
         selectedFramework,
         selectedStandards,
@@ -2373,7 +2407,7 @@ You can review and edit these details in the side panel before proceeding to fra
         frameworks,
       );
 
-      console.log('📋 Validation result:', validationError);
+      addLog('info', 'Framework', 'Validation result', { validationError });
 
       if (validationError) {
         setFrameworkError(validationError);
@@ -2399,33 +2433,24 @@ You can review and edit these details in the side panel before proceeding to fra
           isProcessing: false,
         }));
 
-        // Add success message
+        // Add success message and move to custom instructions
         addMessage(
           `**Framework Configuration Complete!**\n\n● **Selected Framework:** ${selectedFramework}\n● **Active Standards:** ${Array.isArray(selectedStandards) ? selectedStandards.length : 0} standards selected\n● **Compliance Scope:** ${Array.isArray(selectedStandards) ? selectedStandards.join(", ") : "none"}\n● **Analysis Scope:** Approximately ${Array.isArray(selectedStandards) ? selectedStandards.length * 50 : 0}+ compliance requirements\n\n**Ready to proceed with intelligent categorization analysis!**`,
           "system",
         );
 
-        // Start smart mode analysis directly
+        // Move to custom instructions step instead of directly starting analysis
+        moveToNextStep("custom-instructions");
+        
         addMessage(
-          "Perfect! Starting intelligent categorization analysis with your selected framework and standards.",
+          `🎯 **Ready for Analysis Setup!**\n\n💡 **Want to add specific instructions?**\nYou can now provide custom instructions for the analysis if you have specific areas of focus, concerns, or requirements. For example:\n• "Focus on revenue recognition policies"\n• "Pay special attention to lease accounting"\n• "Highlight any ESG reporting gaps"\n\n✍️ **Type your custom instructions below, or simply click "Proceed to Analysis" to continue with standard analysis.**`,
           "system",
         );
-
-        // Move to analysis step and start compliance analysis directly
-        moveToNextStep("analysis");
-        
-        console.log('🎯 About to call startComplianceAnalysis', {
-          documentId: chatState.documentId,
-          selectedFramework,
-          selectedStandards
-        });
-        
-        await startComplianceAnalysis(chatState.documentId!, selectedFramework, selectedStandards);
 
         // Reset framework form state on success
         setFrameworkStep("framework");
       } catch (error: unknown) {
-        console.error('❌ Error in handleFrameworkContinue:', error);
+        addLog('error', 'Framework', 'Error in handleFrameworkContinue', { error: error instanceof Error ? error.message : String(error) });
         const errorMessage = error instanceof Error ? error.message : "Could not submit framework selection";
         addLog(
           'error',
@@ -2439,7 +2464,7 @@ You can review and edit these details in the side panel before proceeding to fra
         setIsFrameworkSubmitting(false);
       }
     } else {
-      console.log('❌ Framework step is not standards, current step:', frameworkStep);
+      addLog('warning', 'Framework', 'Framework step is not standards', { currentStep: frameworkStep, expected: 'standards' });
       addMessage(`Debug: Framework step is "${frameworkStep}", expected "standards"`, "system");
     }
   };
@@ -2466,6 +2491,38 @@ You can review and edit these details in the side panel before proceeding to fra
       ...prev,
       customInstructions: instructions,
     }));
+  };
+
+  const handleCustomInstructionsSubmit = (instructions: string) => {
+    // Save custom instructions to state
+    setChatState((prev) => ({
+      ...prev,
+      customInstructions: instructions,
+    }));
+
+    // Add user message to chat
+    addMessage(instructions, "user");
+
+    // Add system response and move to analysis
+    if (instructions.trim()) {
+      addMessage(
+        `✅ **Custom Instructions Received**\n\n📝 **Your Instructions:** "${instructions}"\n\n🚀 **Starting Enhanced Analysis**\nI'll incorporate your specific requirements into the compliance analysis. This will ensure the results focus on your areas of interest.\n\n⏱️ **Processing Time:** 10-15 minutes with custom focus areas`,
+        "system",
+      );
+    } else {
+      addMessage(
+        `✅ **Proceeding with Standard Analysis**\n\n🚀 **Starting Compliance Analysis**\nI'll perform a comprehensive analysis of your document against the selected accounting standards.\n\n⏱️ **Processing Time:** 10-15 minutes`,
+        "system",
+      );
+    }
+
+    // Move to analysis and start the process
+    moveToNextStep("analysis");
+    startComplianceAnalysis(
+      chatState.documentId!,
+      chatState.selectedFramework!,
+      chatState.selectedStandards
+    );
   };
 
   const handleEditFrameworkSelection = () => {
@@ -2532,14 +2589,26 @@ You can review and edit these details in the side panel before proceeding to fra
       const selectedFramework = framework || chatState.selectedFramework;
       const selectedStandards = standards || chatState.selectedStandards;
 
-      if (
-        !docId ||
-        !selectedFramework ||
-        !selectedStandards ||
-        selectedStandards.length === 0
-      ) {
-        throw new Error("Missing required analysis parameters");
+      // Enhanced parameter validation with specific error messages
+      if (!docId) {
+        throw new Error("Missing document ID - no document uploaded or session expired");
       }
+      
+      if (!selectedFramework) {
+        throw new Error("Missing framework selection - please select a compliance framework first");
+      }
+      
+      if (!selectedStandards || selectedStandards.length === 0) {
+        throw new Error("Missing standards selection - please select at least one accounting standard");
+      }
+
+      // Log analysis parameters for debugging
+      addLog('info', 'Analysis', '🎯 Starting compliance analysis', {
+        documentId: docId,
+        framework: selectedFramework,
+        standards: selectedStandards.length,
+        customInstructions: !!chatState.customInstructions
+      });
 
       setChatState((prev) => ({
         ...prev,
@@ -2584,27 +2653,70 @@ You can review and edit these details in the side panel before proceeding to fra
       // Start polling for results
       pollForResults();
     } catch (error: unknown) {
-      const errorObj = error as { response?: { data?: { detail?: string; message?: string } }; message?: string };
+      const errorObj = error as { 
+        response?: { 
+          data?: { detail?: string; message?: string }; 
+          status?: number 
+        }; 
+        message?: string 
+      };
+      
       addLog(
         'error',
         'Analysis',
-        `Failed to start analysis: ${errorObj.message || 'Unknown error'}`
+        `Failed to start analysis: ${errorObj.message || 'Unknown error'}`,
+        { 
+          documentId: documentId || chatState.documentId, 
+          framework: selectedFramework,
+          status: errorObj.response?.status,
+          errorData: errorObj.response?.data
+        }
       );
       setChatState((prev) => ({ ...prev, isProcessing: false }));
 
+      // Enhanced error handling based on error type and status
       let errorMessage = "Failed to start compliance analysis";
+      let isParameterError = false;
+      let isTemporaryError = false;
+
       if (errorObj.response && errorObj.response.data) {
-        errorMessage += `: ${errorObj.response.data.detail || errorObj.response.data.message || "Unknown error"}`;
+        const errorDetail = errorObj.response.data.detail || errorObj.response.data.message || "Unknown error";
+        errorMessage += `: ${errorDetail}`;
+        
+        // Check for parameter-related errors
+        if (errorDetail.toLowerCase().includes("missing") && 
+            errorDetail.toLowerCase().includes("parameter")) {
+          isParameterError = true;
+        }
+        
+        // Check for temporary backend issues (5xx errors)
+        if (errorObj.response.status && errorObj.response.status >= 500) {
+          isTemporaryError = true;
+        }
       } else if (errorObj.message) {
         errorMessage += `: ${errorObj.message}`;
+        if (errorObj.message.toLowerCase().includes("network") ||
+            errorObj.message.toLowerCase().includes("timeout")) {
+          isTemporaryError = true;
+        }
       }
 
-      const detailedErrorMessage = `❌ **Smart Categorization Analysis Failed to Start**\n\n🚨 **Error Details:** ${errorMessage}\n📋 **Backend Status:** Smart categorization service encountered processing error\n🔧 **Troubleshooting:**\n• Document may not be fully processed by smart categorization workflow\n• Framework selection might be invalid\n• AI categorization services may be temporarily unavailable\n🔄 **Next Steps:** Please try again or contact support\n\n*Smart categorization analysis initialization could not be completed successfully.*`;
+      // Provide specific error messages and guidance
+      let detailedErrorMessage;
+      if (isParameterError) {
+        detailedErrorMessage = `❌ **Smart Categorization Analysis Failed to Start**\n\n🚨 **Error Details:** ${errorMessage}\n📋 **Issue Type:** Missing Required Analysis Parameters\n🔧 **Troubleshooting:**\n• Document ID: ${documentId || chatState.documentId || 'Not available'}\n• Framework: ${selectedFramework || 'Not selected'}\n• Standards: ${selectedStandards.length} selected\n• Please ensure document is fully uploaded and framework is properly selected\n🔄 **Next Steps:** Try reselecting the framework and standards, then restart analysis\n\n*Analysis parameters validation failed - please check your selections.*`;
+      } else if (isTemporaryError) {
+        detailedErrorMessage = `❌ **Smart Categorization Analysis Failed to Start**\n\n🚨 **Error Details:** ${errorMessage}\n📋 **Issue Type:** Temporary Backend Service Issue\n🔧 **Troubleshooting:**\n• AI services may be temporarily unavailable\n• Backend processing services experiencing issues\n• This is likely a temporary issue\n🔄 **Next Steps:** Please wait a moment and try again\n\n*Temporary backend service interruption - your document and selections are preserved.*`;
+      } else {
+        detailedErrorMessage = `❌ **Smart Categorization Analysis Failed to Start**\n\n🚨 **Error Details:** ${errorMessage}\n📋 **Backend Status:** Smart categorization service encountered processing error\n🔧 **Troubleshooting:**\n• Document may not be fully processed by smart categorization workflow\n• Framework selection might be invalid\n• AI categorization services may be temporarily unavailable\n🔄 **Next Steps:** Please try again or contact support\n\n*Smart categorization analysis initialization could not be completed successfully.*`;
+      }
 
       addMessage(detailedErrorMessage, "system");
 
       toast({
-        title: "Smart Categorization Analysis Error",
+        title: isParameterError ? "Missing Analysis Parameters" : 
+               isTemporaryError ? "Temporary Service Issue" : 
+               "Smart Categorization Analysis Error",
         description: errorMessage,
         variant: "destructive",
       });
@@ -3180,6 +3292,7 @@ You can expand each section below to review detailed findings, evidence, and sug
                 }
               }}
               onFrameworkSelection={handleFrameworkSelection}
+              onCustomInstructions={handleCustomInstructionsSubmit}
               chatState={chatState}
               disabled={chatState.isProcessing}
               onUploadStart={() => {

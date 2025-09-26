@@ -27,6 +27,7 @@ import { useTheme } from "@/context/theme-context";
 interface ChatInputProps {
   onFileUpload: (file: unknown, response?: unknown) => void;
   onFrameworkSelection: (framework: string, standards: string[]) => void;
+  onCustomInstructions?: (instructions: string) => void;
   chatState: ChatState;
   disabled?: boolean;
   onUploadStart?: () => void;
@@ -51,6 +52,7 @@ interface Framework {
 export function ChatInput({
   onFileUpload,
   onFrameworkSelection,
+  onCustomInstructions,
   chatState,
   disabled = false,
   onUploadStart,
@@ -263,6 +265,10 @@ export function ChatInput({
     ) {
       setShowFrameworkSelector(true);
       setInputValue("");
+    } else if (chatState.currentStep?.id === "custom-instructions") {
+      // Handle custom instructions input
+      onCustomInstructions?.(inputValue.trim());
+      setInputValue("");
     } else {
       // For now, just clear the input
       setInputValue("");
@@ -304,6 +310,8 @@ export function ChatInput({
         return "Confirm metadata in the side panel...";
       case "framework-selection":
         return "Select accounting standards to analyze...";
+      case "custom-instructions":
+        return "Type custom analysis instructions (optional)...";
       case "analysis":
         return "Analysis in progress...";
       case "results":
@@ -849,6 +857,30 @@ export function ChatInput({
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Proceed to Analysis Button for Custom Instructions Step */}
+        {chatState.currentStep?.id === "custom-instructions" && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 flex justify-center"
+          >
+            <Button
+              onClick={() => onCustomInstructions?.("")}
+              disabled={disabled}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-2"
+              >
+                <span>Proceed to Analysis</span>
+                <Send className="h-4 w-4" />
+              </motion.div>
+            </Button>
+          </motion.div>
+        )}
 
         {/* Status Indicator */}
         {chatState.fileName && (
