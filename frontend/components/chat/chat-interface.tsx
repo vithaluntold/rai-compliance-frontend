@@ -2057,7 +2057,7 @@ You can review and edit these details in the side panel before proceeding to fra
     standards: string[],
   ) => {
     try {
-      addLog('info', 'Framework', '🔍 Framework selection started', { framework, standards });
+      addLog('info', 'Framework', '🔍 Framework selection started - NOW GOES TO CUSTOM INSTRUCTIONS', { framework, standards, currentStep: chatState.currentStep?.id });
       
       if (!chatState.documentId) {
         toast({
@@ -2093,15 +2093,19 @@ You can review and edit these details in the side panel before proceeding to fra
         "system",
       );
 
-      // Start smart mode analysis directly
+      // 🎯 FIXED: Go through custom instructions workflow instead of direct analysis
       addMessage(
-        "Perfect! Starting intelligent categorization analysis with your selected framework and standards.",
+        `**Framework Configuration Complete!**\n\n● **Selected Framework:** ${framework}\n● **Active Standards:** ${Array.isArray(standards) ? standards.length : 0} standards selected\n● **Compliance Scope:** ${Array.isArray(standards) ? standards.join(", ") : "none"}\n● **Analysis Scope:** Approximately ${Array.isArray(standards) ? standards.length * 50 : 0}+ compliance requirements\n\n**Ready to proceed with intelligent categorization analysis!**`,
         "system",
       );
 
-      // Move to analysis step and start compliance analysis directly with the selected values
-      moveToNextStep("analysis");
-      await startComplianceAnalysis(chatState.documentId!, framework, standards);
+      // Move to custom instructions step instead of directly starting analysis
+      moveToNextStep("custom-instructions");
+      
+      addMessage(
+        `🎯 **Ready for Analysis Setup!**\n\n💡 **Want to add specific instructions?**\nYou can now provide custom instructions for the analysis if you have specific areas of focus, concerns, or requirements. For example:\n• "Focus on revenue recognition policies"\n• "Pay special attention to lease accounting"\n• "Highlight any ESG reporting gaps"\n\n✍️ **Type your custom instructions below, or simply click "Proceed to Analysis" to continue with standard analysis.**`,
+        "system",
+      );
     } catch (error: unknown) {
       // Extract error message and determine error type first
       let errorMessage = "Failed to select framework";

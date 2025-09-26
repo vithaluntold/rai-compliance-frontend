@@ -884,8 +884,8 @@ export function SidePanel({
             onContinue={onFrameworkContinue || (() => {})}
             onBack={onFrameworkBack || (() => {})}
             onCustomInstructionsChange={onCustomInstructionsChange || (() => {})}
-            // Disable editing during analysis
-            disabled={chatState.currentStep?.id === "analysis"}
+            // Disable editing during analysis and custom instructions step
+            disabled={chatState.currentStep?.id === "analysis" || chatState.currentStep?.id === "custom-instructions"}
           />
         </div>
       );
