@@ -12,6 +12,8 @@ import { SessionsSidebar } from "./sessions-sidebar";
 import { useToast } from "@/components/ui/use-toast";
 import { api, SessionDetail } from "@/lib/api-client";
 import { useProcessingLogs } from "@/components/ui/processing-logs";
+import AnalysisPipelineLogger from "@/utils/analysisLogger";
+import { logApiClient } from "@/lib/logApiClient";
 import { useTheme } from "@/context/theme-context";
 import {
   Framework,
@@ -288,6 +290,30 @@ export function ChatInterface() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // Analysis Pipeline Logger for comprehensive tracking
+  const [pipelineLogger, setPipelineLogger] = useState<AnalysisPipelineLogger | null>(null);
+
+  // Initialize pipeline logger when component mounts
+  useEffect(() => {
+    const sessionId = searchParams.get('session') || `session_${Date.now()}`;
+    const logger = new AnalysisPipelineLogger(sessionId);
+    setPipelineLogger(logger);
+    
+    // Log initial state
+    logger.startFileUpload('component_initialization', 0);
+    
+    return () => {
+      // Export log for debugging if there were critical errors
+      if (logger.getLogSummary().criticalErrors.length > 0) {
+        // Export log for debugging critical errors
+        if (typeof window !== 'undefined' && window.console) {
+          window.console.error('🚨 CRITICAL ERRORS DETECTED - EXPORTING LOG');
+        }
+        logger.exportLogForDebugging();
+      }
+    };
+  }, [searchParams]);  // Include searchParams dependency
 
   // Chat steps workflow - defined before useEffect to avoid reference errors
   const chatSteps: ChatStep[] = useMemo(
@@ -1259,8 +1285,8 @@ toast({
   const handleFileUpload = async (file: File, uploadResponse?: unknown): Promise<void> => {
     const response = uploadResponse as Record<string, unknown> | undefined;
     
-    // 🔍 DEBUG: Log what we're receiving
-    // Debug: handleFileUpload called
+    // 🔍 COMPREHENSIVE PIPELINE LOGGING
+    pipelineLogger?.startFileUpload(file.name, file.size);
     
     try {
       // Track the file upload API call
@@ -1276,11 +1302,21 @@ toast({
         }
       );
 
+      // Log upload completion with response analysis
+      pipelineLogger?.fileUploadCompleted(response || null);
+
       // ✅ CRITICAL FIX: Check response status first before extracting document_id
       if (response) {
         // Handle error responses from backend (status: "error" is not in UploadResponse type but backend sends it)
         if ((response['status'] as string) === 'error') {
           const errorMessage = (response['message'] as string) || ((response as unknown) as Record<string, unknown>)['error'] as string || 'Unknown upload error';
+          
+          // Log upload failure
+          pipelineLogger?.fileUploadFailed({
+            message: errorMessage,
+            response: response,
+            status: response['status']
+          });
           
           addLog(
             'error',
@@ -1371,6 +1407,9 @@ toast({
 
         // ✅ FIXED: Upload already triggered processing, now just poll for status
         try {
+          // Start metadata extraction logging
+          pipelineLogger?.startMetadataExtraction(documentId);
+          
           addLog(
             'info',
             'SmartProcessing',
@@ -1858,6 +1897,9 @@ toast({
         ...(directStatus?.metadata && { metadata: directStatus.metadata }),
       };
       
+      // Log metadata polling attempt
+      pipelineLogger?.metadataPollingAttempt(currentAttempt, statusResponse);
+      
       addLog(
         'info',
         'API',
@@ -2297,6 +2339,9 @@ You can review and edit these details in the side panel before proceeding to fra
     setSelectedStandards([]); // Reset standards when framework changes
     setFrameworkError(null);
 
+    // Log framework selection
+    pipelineLogger?.frameworkSelected(frameworkId);
+
     // ✅ IMMEDIATELY move to standards step when framework is selected
     setFrameworkStep("standards");
 
@@ -2706,7 +2751,29 @@ You can review and edit these details in the side panel before proceeding to fra
       const selectedFramework = framework || chatState.selectedFramework;
       const selectedStandards = standards || chatState.selectedStandards;
 
+      // Log analysis initiation start
+      pipelineLogger?.analysisInitiationStarted(docId || '', selectedFramework || '', selectedStandards || []);
+
       // Enhanced parameter validation with specific error messages
+      const validation = {
+        hasDocumentId: !!docId,
+        hasFramework: !!selectedFramework,
+        hasStandards: !!(selectedStandards && selectedStandards.length > 0),
+        documentId: docId,
+        framework: selectedFramework,
+        standardCount: selectedStandards?.length || 0
+      };
+      
+      // Log parameter validation
+      pipelineLogger?.analysisParameterValidation({
+        hasDocumentId: validation.hasDocumentId,
+        hasFramework: validation.hasFramework,
+        hasStandards: validation.hasStandards,
+        ...(validation.documentId && { documentId: validation.documentId }),
+        ...(validation.framework && { framework: validation.framework }),
+        standardCount: validation.standardCount
+      });
+
       if (!docId) {
         throw new Error("Missing document ID - no document uploaded or session expired");
       }
@@ -2760,7 +2827,13 @@ You can review and edit these details in the side panel before proceeding to fra
         processingMode: chatState.processingMode || "enhanced",
       };
 
-      await api.analysis.selectFramework(docId, requestData);
+      // Log API call start
+      pipelineLogger?.analysisApiCallStarted(requestData);
+
+      const apiResponse = await api.analysis.selectFramework(docId, requestData);
+      
+      // Log successful API response
+      pipelineLogger?.analysisApiCallCompleted(apiResponse);
 
       // addMessage(
       //   `Analysis started! I'm now checking ${selectedStandards.length} standards with ${selectedStandards.length * 50}+ compliance requirements. This may take 10-15 minutes.`,
@@ -2778,6 +2851,9 @@ You can review and edit these details in the side panel before proceeding to fra
         message?: string 
       };
       
+      // Log analysis API failure
+      pipelineLogger?.analysisApiCallFailed(errorObj);
+      
       addLog(
         'error',
         'Analysis',
@@ -2790,6 +2866,17 @@ You can review and edit these details in the side panel before proceeding to fra
         }
       );
       setChatState((prev) => ({ ...prev, isProcessing: false }));
+      
+      // Export diagnostic log for critical analysis failures
+      if (pipelineLogger) {
+        // Diagnostic report for analysis initiation failure
+        if (typeof window !== 'undefined' && window.console) {
+          window.console.error('🚨 ANALYSIS INITIATION FAILED - DIAGNOSTIC REPORT:');
+          const issues = pipelineLogger.diagnoseIssues();
+          window.console.error('🔍 Identified Issues:', issues);
+        }
+        pipelineLogger.exportLogForDebugging();
+      }
 
       // Enhanced error handling based on error type and status
       let errorMessage = "Failed to start compliance analysis";
@@ -3395,7 +3482,47 @@ You can expand each section below to review detailed findings, evidence, and sug
             {chatState.currentStep?.id === "custom-instructions" && (
               <div className="flex justify-center py-6">
                 <button
-                  onClick={() => handleCustomInstructionsSubmit("")}
+                  onClick={() => {
+                    // 🚨 CRITICAL LOGGING: Track Proceed to Analysis button click
+                    const buttonClickData = {
+                      timestamp: new Date().toISOString(),
+                      documentId: chatState.documentId,
+                      selectedFramework: chatState.selectedFramework, 
+                      selectedStandards: chatState.selectedStandards,
+                      standardCount: chatState.selectedStandards?.length || 0,
+                      isProcessing: chatState.isProcessing,
+                      currentStep: chatState.currentStep?.id,
+                      environment: process.env.NODE_ENV,
+                      renderInstance: process.env['RENDER_INSTANCE_ID'] || 'local'
+                    };
+                    
+                    // Log to both console and logger for debugging
+                    addLog('info', 'PROCEED_BUTTON', '🚀 PROCEED TO ANALYSIS CLICKED', buttonClickData);
+                    
+                    // Send log to backend for Render visibility
+                    logApiClient.sendProceedAnalysisLog(buttonClickData);
+                    
+                    // Log to pipeline logger
+                    pipelineLogger?.customInstructionsSubmitted('');
+                    
+                    // Export comprehensive log if there are critical issues
+                    if (pipelineLogger && (
+                      !chatState.documentId || 
+                      !chatState.selectedFramework || 
+                      !chatState.selectedStandards?.length
+                    )) {
+                      // Export log for critical issues
+                      if (typeof window !== 'undefined' && window.console) {
+                        window.console.error('🚨 CRITICAL ISSUES DETECTED - EXPORTING LOG');
+                      }
+                      pipelineLogger.exportLogForDebugging();
+                      
+                      // Send to backend
+                      logApiClient.sendPipelineLog(pipelineLogger.getFullLog() as unknown as Record<string, unknown>);
+                    }
+                    
+                    handleCustomInstructionsSubmit("");
+                  }}
                   disabled={chatState.isProcessing}
                   className="bg-gradient-to-r from-[#0087d9] to-[#0ea5e9] hover:from-[#0070c7] hover:to-[#0087d9] text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2"
                 >
