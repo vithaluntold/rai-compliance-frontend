@@ -14,6 +14,7 @@ import { api, SessionDetail } from "@/lib/api-client";
 import { useProcessingLogs } from "@/components/ui/processing-logs";
 import AnalysisPipelineLogger from "@/utils/analysisLogger";
 import { logApiClient } from "@/lib/logApiClient";
+import { AnalysisDiagnostics } from "@/components/debug/AnalysisDiagnostics";
 import { useTheme } from "@/context/theme-context";
 import {
   Framework,
@@ -294,25 +295,28 @@ export function ChatInterface() {
   // Analysis Pipeline Logger for comprehensive tracking
   const [pipelineLogger, setPipelineLogger] = useState<AnalysisPipelineLogger | null>(null);
 
-  // Initialize pipeline logger when component mounts
+  // Initialize pipeline logger when component mounts - only for valid sessions
   useEffect(() => {
-    const sessionId = searchParams.get('session') || `session_${Date.now()}`;
-    const logger = new AnalysisPipelineLogger(sessionId);
-    setPipelineLogger(logger);
-    
-    // Log initial state
-    logger.startFileUpload('component_initialization', 0);
-    
-    return () => {
-      // Export log for debugging if there were critical errors
-      if (logger.getLogSummary().criticalErrors.length > 0) {
-        // Export log for debugging critical errors
-        if (typeof window !== 'undefined' && window.console) {
-          window.console.error('🚨 CRITICAL ERRORS DETECTED - EXPORTING LOG');
+    const sessionId = searchParams.get('session'); // Only use session from URL params
+    if (sessionId) {
+      const logger = new AnalysisPipelineLogger(sessionId);
+      setPipelineLogger(logger);
+      
+      // Log initial state
+      logger.startFileUpload('component_initialization', 0);
+      
+      return () => {
+        // Export log for debugging if there were critical errors
+        if (logger.getLogSummary().criticalErrors.length > 0) {
+          // Export log for debugging critical errors
+          if (typeof window !== 'undefined' && window.console) {
+            window.console.error('🚨 CRITICAL ERRORS DETECTED - EXPORTING LOG');
+          }
+          logger.exportLogForDebugging();
         }
-        logger.exportLogForDebugging();
-      }
-    };
+      };
+    }
+    // No logger for new sessions - will be created when session is actually created
   }, [searchParams]);  // Include searchParams dependency
 
   // Chat steps workflow - defined before useEffect to avoid reference errors
@@ -394,7 +398,7 @@ export function ChatInterface() {
   // INITIALIZATION LOGIC - Always start fresh unless explicitly loading a session or document
   useEffect(() => {
     const resetParameter = searchParams.get('reset');
-    const sessionId = searchParams.get('session');
+    const sessionId = searchParams.get('session'); // Only load sessions from URL params
     const documentId = searchParams.get('documentId');
     const isExplicitNavigation = resetParameter === 'true' || resetParameter === '1';
     
@@ -411,18 +415,29 @@ export function ChatInterface() {
         return;
       }
       
-      // Load specific session if requested
+      // Load specific session ONLY if it comes from URL params (existing session)
       if (sessionId) {
+        console.log(`🔄 Loading existing session from URL: ${sessionId}`);
         await loadSession(sessionId);
         return;
       }
       
       // Default: Always start fresh for new sessions
+      // NOTE: Do NOT try to load sessions with generated IDs - they don't exist yet
+      console.log('🆕 Starting fresh session - no existing session to load');
       performFullReset();
     };
 
     const loadSession = async (sessionId: string) => {
       try {
+        // Additional safety check: Don't try to load sessions with generated IDs
+        if (sessionId.includes('session_') && /session_\d{13,}/.test(sessionId)) {
+          console.log(`⚠️ Skipping load of generated session ID: ${sessionId}`);
+          performFullReset();
+          return;
+        }
+        
+        console.log(`🔄 Loading session: ${sessionId}`);
         const session = await api.sessions.get(sessionId);
         setCurrentSession(session);
         
@@ -1177,6 +1192,13 @@ toast({
         ...(documentId && { last_document_id: documentId }), // Only include if documentId exists
       });
       setCurrentSession(session);
+      
+      // Create pipeline logger for the new session
+      if (session.session_id && !pipelineLogger) {
+        const logger = new AnalysisPipelineLogger(session.session_id);
+        setPipelineLogger(logger);
+        logger.startFileUpload('session_created', 0);
+      }
       
       // Save initial state to the session
       setTimeout(() => saveCurrentSession(), 500);
@@ -2746,10 +2768,34 @@ You can review and edit these details in the side panel before proceeding to fra
     framework?: string,
     standards?: string[],
   ) => {
+    // 🚨 CRITICAL LOGGING: Function entry point
+    const entryTimestamp = new Date().toISOString();
+    if (typeof window !== 'undefined' && window.console) {
+      window.console.log('🔥 CRITICAL: startComplianceAnalysis ENTERED', {
+        timestamp: entryTimestamp,
+        documentId,
+        framework,
+        standards,
+        chatStateDocId: chatState.documentId,
+        chatStateFramework: chatState.selectedFramework,
+        chatStateStandards: chatState.selectedStandards
+      });
+    }
+    
     try {
       const docId = documentId || chatState.documentId;
       const selectedFramework = framework || chatState.selectedFramework;
       const selectedStandards = standards || chatState.selectedStandards;
+
+      // 🚨 CRITICAL LOGGING: Parameter resolution
+      if (typeof window !== 'undefined' && window.console) {
+        window.console.log('🔥 CRITICAL: Parameters resolved', {
+          docId,
+          selectedFramework,
+          selectedStandards,
+          standardsLength: selectedStandards?.length
+        });
+      }
 
       // Log analysis initiation start
       pipelineLogger?.analysisInitiationStarted(docId || '', selectedFramework || '', selectedStandards || []);
@@ -2827,10 +2873,34 @@ You can review and edit these details in the side panel before proceeding to fra
         processingMode: chatState.processingMode || "enhanced",
       };
 
+      // 🚨 CRITICAL LOGGING: About to make API call
+      if (typeof window !== 'undefined' && window.console) {
+        window.console.log('🔥 CRITICAL: About to call selectFramework API', {
+          docId,
+          requestData,
+          apiFunction: typeof api.analysis.selectFramework
+        });
+      }
+
       // Log API call start
       pipelineLogger?.analysisApiCallStarted(requestData);
 
-      const apiResponse = await api.analysis.selectFramework(docId, requestData);
+      // 🚨 CRITICAL LOGGING: Making API call with try-catch
+      let apiResponse;
+      try {
+        if (typeof window !== 'undefined' && window.console) {
+          window.console.log('🔥 CRITICAL: Calling API now...');
+        }
+        apiResponse = await api.analysis.selectFramework(docId, requestData);
+        if (typeof window !== 'undefined' && window.console) {
+          window.console.log('🔥 CRITICAL: API call completed successfully', apiResponse);
+        }
+      } catch (apiError) {
+        if (typeof window !== 'undefined' && window.console) {
+          window.console.error('🔥 CRITICAL: API call failed with error', apiError);
+        }
+        throw apiError; // Re-throw to be caught by outer catch
+      }
       
       // Log successful API response
       pipelineLogger?.analysisApiCallCompleted(apiResponse);
@@ -2843,6 +2913,17 @@ You can review and edit these details in the side panel before proceeding to fra
       // Start polling for results
       pollForResults();
     } catch (error: unknown) {
+      // 🚨 CRITICAL LOGGING: Exception caught
+      if (typeof window !== 'undefined' && window.console) {
+        window.console.error('🔥 CRITICAL: startComplianceAnalysis EXCEPTION CAUGHT', {
+          error,
+          errorType: typeof error,
+          errorConstructor: error?.constructor?.name,
+          errorMessage: error instanceof Error ? error.message : String(error),
+          errorStack: error instanceof Error ? error.stack : 'No stack trace'
+        });
+      }
+      
       const errorObj = error as { 
         response?: { 
           data?: { detail?: string; message?: string }; 
@@ -3752,6 +3833,13 @@ You can expand each section below to review detailed findings, evidence, and sug
             progressPercent={chatState.currentProgress.percentage || 0}
             estimatedTimeRemaining={Math.max(1, Math.round((100 - (chatState.currentProgress.percentage || 0)) / 10))}
           />
+        </div>
+      )}
+
+      {/* Debug Diagnostics - only show in development or when document exists */}
+      {(process.env.NODE_ENV === 'development' || chatState.documentId) && (
+        <div className="mt-4">
+          <AnalysisDiagnostics documentId={chatState.documentId} />
         </div>
       )}
     </div>

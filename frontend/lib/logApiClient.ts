@@ -13,7 +13,7 @@ export class LogApiClient {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:8000';
+    this.baseUrl = process.env['NEXT_PUBLIC_API_URL'] || 'https://rai-compliance-backend.onrender.com';
   }
 
   async sendPipelineLog(logData: Record<string, unknown>) {

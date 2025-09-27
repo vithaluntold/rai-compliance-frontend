@@ -147,16 +147,18 @@ export const SparklesCore = ({
     return null;
   }
 
+  const canvasStyle: React.CSSProperties = {
+    background,
+    width: dimensions.width,
+    height: dimensions.height,
+  };
+
   return (
     <canvas
       ref={canvasRef}
       id={id}
       className={className}
-      style={{
-        background,
-        width: dimensions.width,
-        height: dimensions.height,
-      }}
+      style={canvasStyle}
     />
   );
 };
